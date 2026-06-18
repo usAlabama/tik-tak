@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Luxury Analog Clock · Deep Blue‑Green</title>
+    <style>
+        :root {
+            --bg: #060d0f;
+            --surface: #0b191c;
+            --text: #aad8d0;
+            --text-secondary: #3a7a6a;
+            --accent: #2dd4bf;
+            --accent-gold: #1a9e8a;
+            --border: #1a3535;
+            --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.7);
+            --shadow-medium: 0 8px 40px rgba(0, 0, 0, 0.8);
+            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.9);
+            --radius: 18px;
+            --transition-smooth: 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+            --font-display: 'Georgia', 'Times New Roman', 'Palatino Linotype', 'Book Antiqua', serif;
+            --font-ui: 'Inter', 'Segoe UI', 'Helvetica Neue', 'Arial', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: var(--font-ui);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            transition: background var(--transition-smooth);
+            cursor: default;
+        }
+        body.focus-mode {
+            background: #030a0a;
+            cursor: none;
+        }
+        body.focus-mode .ui-top-bar,
+        body.focus-mode .settings-panel,
+        body.focus-mode .bottom-indicators,
+        body.focus-mode .speed-indicator {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+        body.ui-hidden .ui-top-bar,
+        body.ui-hidden .bottom-indicators,
+        body.ui-hidden .speed-indicator {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+        body.ui-hidden .settings-panel.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #app {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            padding: 20px;
+        }
+
+        .canvas-container {
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: min(85vw, 85vh, 550px);
+            height: min(85vw, 85vh, 550px);
+            transition: width 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), height 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .canvas-container.calibrating {
+            animation: clockSettle 1.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        @keyframes clockSettle {
+            0% {
+                transform: scale(1.04);
+                filter: blur(1px);
+            }
+            40% {
+                transform: scale(0.97);
+                filter: blur(0px);
+            }
+            70% {
+                transform: scale(1.008);
+            }
+            100% {
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: filter 0.5s ease;
+        }
+
+        .ui-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 16px 20px;
+            gap: 8px;
+            z-index: 100;
+            pointer-events: none;
+            transition: opacity var(--transition-smooth);
+        }
+        .ui-top-bar>* {
+            pointer-events: auto;
+        }
+
+        .btn-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: rgba(11, 25, 28, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+        }
+        .btn-icon:hover {
+            background: rgba(26, 53, 53, 0.9);
+            border-color: var(--accent);
+            box-shadow: var(--shadow-medium), 0 0 24px rgba(45, 212, 191, 0.1);
+            transform: translateY(-1px);
+        }
+        .btn-icon:active {
+            transform: scale(0.94);
+            transition: transform 0.1s ease;
+        }
+        .btn-icon.active {
+            background: rgba(26, 53, 53, 0.9);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 28px rgba(45, 212, 191, 0.15);
+        }
+        .btn-icon .tooltip {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: #0b191c;
+            color: #8dd4c8;
+            font-size: 11px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            letter-spacing: 0.3px;
+            font-family: var(--font-ui);
+            border: 1px solid #1a3535;
+        }
+        .btn-icon:hover .tooltip {
+            opacity: 1;
+        }
+
+        .bottom-indicators {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 90;
+            transition: opacity var(--transition-smooth);
+        }
+        .time-display {
+            font-family: var(--font-display);
+            font-size: 15px;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            background: rgba(11, 25, 28, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            min-width: 100px;
+            text-align: center;
+            transition: all var(--transition-fast);
+        }
+        .speed-indicator {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            font-family: var(--font-display);
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            background: rgba(11, 25, 28, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 6px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            z-index: 90;
+            transition: all var(--transition-smooth);
+            opacity: 0.7;
+        }
+        .speed-indicator.hidden-indicator {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 380px;
+            max-width: 92vw;
+            background: rgba(11, 25, 28, 0.97);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-left: 1px solid var(--border);
+            z-index: 200;
+            transform: translateX(105%);
+            transition: transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
+            box-shadow: -8px 0 60px rgba(0, 0, 0, 0.7);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 24px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+        .settings-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .settings-panel::-webkit-scrollbar-thumb {
+            background: #1a3535;
+            border-radius: 4px;
+        }
+        .settings-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .settings-panel h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .settings-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .settings-section label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .theme-btn {
+            height: 48px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 10px;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+            color: #aaa;
+            position: relative;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .theme-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-medium);
+        }
+        .theme-btn.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18), 0 0 28px rgba(45, 212, 191, 0.08);
+        }
+        .theme-btn.classic-white {
+            background: #faf7f2;
+            color: #3d3226;
+        }
+        .theme-btn.dark-mode {
+            background: #2a2722;
+            color: #d5c9b5;
+        }
+        .theme-btn.wooden {
+            background: #c4a882;
+            color: #3e2f1c;
+        }
+        .theme-btn.black-gold {
+            background: #1a1814;
+            color: #c9a96e;
+        }
+        .theme-btn.minimal-gray {
+            background: #e8e4de;
+            color: #4a4540;
+        }
+        .theme-btn.deep-teal {
+            background: #0a1a1a;
+            color: #7acfc0;
+            border-color: #1a3535;
+        }
+        .theme-btn.deep-teal.selected {
+            border-color: var(--accent);
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .slider-group input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #1a3535;
+            outline: none;
+            cursor: pointer;
+        }
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #0b191c;
+            border: 2px solid var(--accent);
+            cursor: pointer;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+        }
+        .slider-group input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #0b191c;
+            border: 2px solid var(--accent);
+            cursor: pointer;
+        }
+        .slider-val {
+            font-size: 11px;
+            color: var(--text-secondary);
+            min-width: 32px;
+            text-align: right;
+            letter-spacing: 0.5px;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+        }
+        .toggle-row span {
+            font-size: 13px;
+            color: var(--text);
+            letter-spacing: 0.3px;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 26px;
+            border-radius: 13px;
+            background: #1a3535;
+            cursor: pointer;
+            position: relative;
+            transition: background var(--transition-fast);
+            flex-shrink: 0;
+        }
+        .toggle-switch.on {
+            background: var(--accent);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0b191c;
+            transition: transform var(--transition-fast);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        }
+        .toggle-switch.on::after {
+            transform: translateX(18px);
+            background: #0b191c;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-sm {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(11, 25, 28, 0.6);
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            font-family: var(--font-ui);
+            white-space: nowrap;
+        }
+        .btn-sm:hover {
+            background: rgba(26, 53, 53, 0.6);
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        .btn-sm.active-btn {
+            background: rgba(45, 212, 191, 0.18);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+            box-shadow: 0 0 24px rgba(45, 212, 191, 0.08);
+        }
+
+        .overlay-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 150;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+        .overlay-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @media (max-width: 768px) {
+            .settings-panel {
+                width: 100%;
+                max-width: 100%;
+                top: auto;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                height: 70vh;
+                border-radius: 24px 24px 0 0;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                transform: translateY(105%);
+                padding: 20px 16px 50px;
+            }
+            .settings-panel.open {
+                transform: translateY(0);
+            }
+            .canvas-container {
+                width: min(78vw, 78vh, 400px);
+                height: min(78vw, 78vh, 400px);
+            }
+            .ui-top-bar {
+                padding: 10px 12px;
+                gap: 4px;
+            }
+            .btn-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 15px;
+            }
+            .time-display {
+                font-size: 13px;
+                padding: 6px 14px;
+                letter-spacing: 1.5px;
+            }
+            .speed-indicator {
+                bottom: 16px;
+                right: 12px;
+                font-size: 10px;
+                padding: 5px 10px;
+            }
+            .bottom-indicators {
+                bottom: 14px;
+                gap: 10px;
+            }
+            .btn-icon .tooltip {
+                display: none;
+            }
+        }
+        @media (max-width: 400px) {
+            .canvas-container {
+                width: min(74vw, 74vh, 320px);
+                height: min(74vw, 74vh, 320px);
+            }
+            .theme-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (min-width: 1400px) {
+            .canvas-container {
+                width: min(40vw, 620px);
+                height: min(40vw, 620px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="clockCanvas" aria-label="Luxury Analog Clock"></canvas>
+        </div>
+        <div class="ui-top-bar" id="uiTopBar">
+            <button class="btn-icon" id="btnSound" aria-label="Toggle Sound" title="Mute/Unmute (M)">
+                <span>🔊</span>
+                <span class="tooltip">Sound (M)</span>
+            </button>
+            <button class="btn-icon" id="btnMode" aria-label="Toggle Tick/Sweep" title="Tick/Sweep Mode (T)">
+                <span>◎</span>
+                <span class="tooltip">Mode (T)</span>
+            </button>
+            <button class="btn-icon" id="btnFullscreen" aria-label="Fullscreen" title="Fullscreen (F)">
+                <span>⛶</span>
+                <span class="tooltip">Fullscreen (F)</span>
+            </button>
+            <button class="btn-icon" id="btnSettings" aria-label="Settings" title="Settings">
+                <span>⚙</span>
+                <span class="tooltip">Settings</span>
+            </button>
+        </div>
+        <div class="bottom-indicators" id="bottomIndicators">
+            <div class="time-display" id="timeDisplay">12:00:00</div>
+        </div>
+        <div class="speed-indicator hidden-indicator" id="speedIndicator">1×</div>
+        <div class="overlay-backdrop" id="overlayBackdrop"></div>
+        <div class="settings-panel" id="settingsPanel">
+            <h3>Clock Settings</h3>
+            <div class="settings-section">
+                <label>Theme</label>
+                <div class="theme-grid" id="themeGrid">
+                    <button class="theme-btn deep-teal selected" data-theme="deep-teal">Deep Teal</button>
+                    <button class="theme-btn classic-white" data-theme="classic-white">Classic White</button>
+                    <button class="theme-btn dark-mode" data-theme="dark-mode">Dark Mode</button>
+                    <button class="theme-btn wooden" data-theme="wooden">Wooden</button>
+                    <button class="theme-btn black-gold" data-theme="black-gold">Black & Gold</button>
+                    <button class="theme-btn minimal-gray" data-theme="minimal-gray">Minimal Gray</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Clock Size</label>
+                <div class="slider-group">
+                    <input type="range" id="sizeSlider" min="50" max="150" value="100" step="1">
+                    <span class="slider-val" id="sizeVal">100%</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Hand Thickness</label>
+                <div class="slider-group">
+                    <input type="range" id="thicknessSlider" min="60" max="160" value="100" step="1">
+                    <span class="slider-val" id="thicknessVal">100%</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Shadow Intensity</label>
+                <div class="slider-group">
+                    <input type="range" id="shadowSlider" min="30" max="200" value="100" step="1">
+                    <span class="slider-val" id="shadowVal">100%</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Reflection Intensity</label>
+                <div class="slider-group">
+                    <input type="range" id="reflectionSlider" min="0" max="150" value="100" step="1">
+                    <span class="slider-val" id="reflectionVal">100%</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Sound Volume</label>
+                <div class="slider-group">
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50" step="1">
+                    <span class="slider-val" id="volumeVal">50%</span>
+                </div>
+            </div>
+            <div class="settings-section">
+                <div class="toggle-row">
+                    <span>Roman Numerals</span>
+                    <div class="toggle-switch" id="toggleRoman"></div>
+                </div>
+                <div class="toggle-row">
+                    <span>Show Tick Marks</span>
+                    <div class="toggle-switch on" id="toggleTicks"></div>
+                </div>
+                <div class="toggle-row">
+                    <span>Smooth Sweep Mode</span>
+                    <div class="toggle-switch on" id="toggleSweep"></div>
+                </div>
+                <div class="toggle-row">
+                    <span>Sound Enabled</span>
+                    <div class="toggle-switch on" id="toggleSound"></div>
+                </div>
+                <div class="toggle-row">
+                    <span>Real-Time Mode</span>
+                    <div class="toggle-switch on" id="toggleRealTime"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Time Speed</label>
+                <div class="btn-row" id="speedBtnRow">
+                    <button class="btn-sm" data-speed="0.25">0.25×</button>
+                    <button class="btn-sm" data-speed="0.5">0.5×</button>
+                    <button class="btn-sm active-btn" data-speed="1">1×</button>
+                    <button class="btn-sm" data-speed="2">2×</button>
+                    <button class="btn-sm" data-speed="5">5×</button>
+                    <button class="btn-sm" data-speed="10">10×</button>
+                    <button class="btn-sm" data-speed="-1" style="margin-top:4px;">↺ Reverse</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <label>Custom Time (when not real-time)</label>
+                <div class="btn-row" style="gap:6px;">
+                    <button class="btn-sm" id="btnHourUp">+1 Hr</button>
+                    <button class="btn-sm" id="btnHourDown">−1 Hr</button>
+                    <button class="btn-sm" id="btnMinUp">+15 Min</button>
+                    <button class="btn-sm" id="btnMinDown">−15 Min</button>
+                    <button class="btn-sm" id="btnResetTime">Reset to Now</button>
+                </div>
+            </div>
+            <button class="btn-sm" id="btnCloseSettings" style="margin-top:8px;align-self:center;padding:10px 28px;font-size:12px;">Close Settings</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ─────────────────────────────────────
+            // DOM REFERENCES
+            // ─────────────────────────────────────
+            const canvas = document.getElementById('clockCanvas');
+            const ctx = canvas.getContext('2d');
+            const canvasContainer = document.getElementById('canvasContainer');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const speedIndicator = document.getElementById('speedIndicator');
+            const settingsPanel = document.getElementById('settingsPanel');
+            const overlayBackdrop = document.getElementById('overlayBackdrop');
+            const uiTopBar = document.getElementById('uiTopBar');
+            const bottomIndicators = document.getElementById('bottomIndicators');
+            const body = document.body;
+
+            // ─────────────────────────────────────
+            // DEFAULT SETTINGS (Deep Teal with darker colors)
+            // ─────────────────────────────────────
+            const defaultSettings = {
+                theme: 'deep-teal',
+                clockSize: 100,
+                handThickness: 100,
+                shadowIntensity: 100,
+                reflectionIntensity: 100,
+                soundVolume: 50,
+                romanNumerals: false,
+                showTicks: true,
+                sweepMode: true,
+                soundEnabled: true,
+                realTimeMode: true,
+                speed: 1,
+                customHour: 12,
+                customMinute: 0,
+                customSecond: 0,
+                userScale: 1,
+            };
+
+            let settings = { ...defaultSettings };
+
+            // ─────────────────────────────────────
+            // LOAD / SAVE SETTINGS
+            // ─────────────────────────────────────
+            function loadSettings() {
+                try {
+                    const stored = localStorage.getItem('luxury-clock-settings');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        settings = { ...defaultSettings, ...parsed };
+                    }
+                } catch (e) {
+                    settings = { ...defaultSettings };
+                }
+            }
+
+            function saveSettings() {
+                try {
+                    localStorage.setItem('luxury-clock-settings', JSON.stringify(settings));
+                } catch (e) { /* ignore */ }
+            }
+            loadSettings();
+
+            // ─────────────────────────────────────
+            // CLOCK STATE
+            // ─────────────────────────────────────
+            let mode = settings.realTimeMode ? 'real' : 'custom';
+            let customTimeMs = Date.now();
+            let speed = settings.speed;
+            let paused = false;
+            let sweepMode = settings.sweepMode;
+            let soundEnabled = settings.soundEnabled;
+            let soundVolume = settings.soundVolume;
+            let lastFrameTime = performance.now();
+            let calibrationProgress = 0;
+            let calibrationDuration = 1600;
+            let isCalibrating = true;
+            let calibrationStartTime = performance.now();
+            let calibrationSecondRotations = 1.5;
+            let calibrationStartOffset = Math.random() * Math.PI * 2;
+            let userScale = settings.userScale || 1;
+            let clockSizePercent = settings.clockSize;
+            let handThicknessPercent = settings.handThickness;
+            let shadowIntensity = settings.shadowIntensity;
+            let reflectionIntensity = settings.reflectionIntensity;
+            let romanNumerals = settings.romanNumerals;
+            let showTicks = settings.showTicks;
+            let currentTheme = settings.theme;
+
+            // Initialize custom time from settings
+            if (!settings.realTimeMode && settings.customHour !== undefined) {
+                const now = new Date();
+                now.setHours(settings.customHour, settings.customMinute, settings.customSecond, 0);
+                customTimeMs = now.getTime();
+            }
+
+            // ─────────────────────────────────────
+            // AUDIO ENGINE
+            // ─────────────────────────────────────
+            let audioCtx = null;
+            let lastTickSecond = -1;
+
+            function initAudio() {
+                if (!audioCtx) {
+                    try {
+                        audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        audioCtx = null;
+                    }
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }
+
+            // ensure audio context is running before playing
+            function ensureAudio() {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                if (!audioCtx) {
+                    initAudio();
+                }
+            }
+
+            function playTick(volumeScale = 1) {
+                if (!soundEnabled) return;
+                ensureAudio();
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const vol = (soundVolume / 100) * volumeScale * 0.35;
+                if (vol < 0.001) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1100 + Math.random() * 200, now);
+                osc.frequency.exponentialRampToValueAtTime(400 + Math.random() * 150, now + 0.04);
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+
+            function playMechanicalClick(volumeScale = 0.6) {
+                if (!soundEnabled) return;
+                ensureAudio();
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const vol = (soundVolume / 100) * volumeScale * 0.25;
+                if (vol < 0.001) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600 + Math.random() * 300, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.025);
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.035);
+            }
+
+            // ─────────────────────────────────────
+            // THEME COLOR MAPS (deep-teal is much darker with blue-green)
+            // ─────────────────────────────────────
+            function getThemeColors(theme) {
+                switch (theme) {
+                    case 'deep-teal':
+                        return {
+                            faceGradStart: '#0a1a1a',
+                            faceGradEnd: '#030d0d',
+                            bezelLight: '#1a2a2a',
+                            bezelDark: '#0a1515',
+                            numeralColor: '#7acfc0',
+                            tickColor: '#3a7a6a',
+                            hourHandColor: '#9ad4c8',
+                            minuteHandColor: '#7acfc0',
+                            secondHandColor: '#2dd4bf',
+                            centerCapColor: '#1a9e8a',
+                            centerCapDark: '#0d6b5a',
+                            shadowColor: 'rgba(0,0,0,0.8)',
+                            glassHighlight: 'rgba(0,255,230,0.12)',
+                            bgColor: '#060d0f',
+                            surfaceColor: '#0b191c',
+                            textColor: '#aad8d0',
+                            textSecondary: '#3a7a6a',
+                            accent: '#2dd4bf',
+                            accentGold: '#1a9e8a',
+                            border: '#1a3535',
+                        };
+                    case 'classic-white':
+                        return {
+                            faceGradStart: '#fefdfb',
+                            faceGradEnd: '#f3ede4',
+                            bezelLight: '#e8e0d5',
+                            bezelDark: '#c8bda8',
+                            numeralColor: '#3d3226',
+                            tickColor: '#5c4d3a',
+                            hourHandColor: '#2a2219',
+                            minuteHandColor: '#3d3226',
+                            secondHandColor: '#8b3a2a',
+                            centerCapColor: '#c9a96e',
+                            centerCapDark: '#8b6d3f',
+                            shadowColor: 'rgba(60,40,20,0.25)',
+                            glassHighlight: 'rgba(255,255,255,0.55)',
+                            bgColor: '#f5f0eb',
+                            surfaceColor: '#ffffff',
+                            textColor: '#2c2416',
+                            textSecondary: '#6b5e4f',
+                            accent: '#8b7355',
+                            accentGold: '#b8945c',
+                            border: '#e0d5c7',
+                        };
+                    case 'dark-mode':
+                        return {
+                            faceGradStart: '#3d3832',
+                            faceGradEnd: '#25221d',
+                            bezelLight: '#4a4540',
+                            bezelDark: '#1a1814',
+                            numeralColor: '#d5c9b5',
+                            tickColor: '#b8a890',
+                            hourHandColor: '#e8ddd0',
+                            minuteHandColor: '#d5c9b5',
+                            secondHandColor: '#c46040',
+                            centerCapColor: '#b8945c',
+                            centerCapDark: '#7a5e38',
+                            shadowColor: 'rgba(0,0,0,0.5)',
+                            glassHighlight: 'rgba(255,255,255,0.18)',
+                            bgColor: '#1e1b17',
+                            surfaceColor: '#2a2722',
+                            textColor: '#d5c9b5',
+                            textSecondary: '#9a8e7d',
+                            accent: '#b8945c',
+                            accentGold: '#c9a96e',
+                            border: '#3d3832',
+                        };
+                    case 'wooden':
+                        return {
+                            faceGradStart: '#dcc8a8',
+                            faceGradEnd: '#b8956e',
+                            bezelLight: '#c4a078',
+                            bezelDark: '#7a5538',
+                            numeralColor: '#3e2f1c',
+                            tickColor: '#5c3d22',
+                            hourHandColor: '#2e1f0f',
+                            minuteHandColor: '#3e2f1c',
+                            secondHandColor: '#8b3a2a',
+                            centerCapColor: '#d4a860',
+                            centerCapDark: '#8b5e34',
+                            shadowColor: 'rgba(50,30,10,0.35)',
+                            glassHighlight: 'rgba(255,255,255,0.35)',
+                            bgColor: '#e8dcc8',
+                            surfaceColor: '#f5ede0',
+                            textColor: '#3e2f1c',
+                            textSecondary: '#6b4f32',
+                            accent: '#8b5e34',
+                            accentGold: '#b8804a',
+                            border: '#c4a078',
+                        };
+                    case 'black-gold':
+                        return {
+                            faceGradStart: '#1e1c18',
+                            faceGradEnd: '#0f0e0b',
+                            bezelLight: '#3a3528',
+                            bezelDark: '#0a0907',
+                            numeralColor: '#c9a96e',
+                            tickColor: '#b8945c',
+                            hourHandColor: '#d4b878',
+                            minuteHandColor: '#c9a96e',
+                            secondHandColor: '#d4784a',
+                            centerCapColor: '#e0c888',
+                            centerCapDark: '#9a7a3e',
+                            shadowColor: 'rgba(0,0,0,0.7)',
+                            glassHighlight: 'rgba(255,240,210,0.2)',
+                            bgColor: '#141210',
+                            surfaceColor: '#1e1c18',
+                            textColor: '#c9a96e',
+                            textSecondary: '#8a7a5c',
+                            accent: '#b8945c',
+                            accentGold: '#d4b878',
+                            border: '#3a3528',
+                        };
+                    case 'minimal-gray':
+                        return {
+                            faceGradStart: '#f2f0ec',
+                            faceGradEnd: '#e0dcd5',
+                            bezelLight: '#e8e4de',
+                            bezelDark: '#c5bfb4',
+                            numeralColor: '#4a4540',
+                            tickColor: '#6b6359',
+                            hourHandColor: '#3a3530',
+                            minuteHandColor: '#4a4540',
+                            secondHandColor: '#7a5040',
+                            centerCapColor: '#b0a590',
+                            centerCapDark: '#706858',
+                            shadowColor: 'rgba(40,35,30,0.2)',
+                            glassHighlight: 'rgba(255,255,255,0.5)',
+                            bgColor: '#e8e4de',
+                            surfaceColor: '#f8f6f3',
+                            textColor: '#4a4540',
+                            textSecondary: '#7a7368',
+                            accent: '#8b8070',
+                            accentGold: '#a09078',
+                            border: '#d5cfc5',
+                        };
+                    default:
+                        return getThemeColors('deep-teal');
+                }
+            }
+
+            function applyThemeToDOM(theme) {
+                const colors = getThemeColors(theme);
+                body.style.background = colors.bgColor;
+                document.documentElement.style.setProperty('--bg', colors.bgColor);
+                document.documentElement.style.setProperty('--surface', colors.surfaceColor);
+                document.documentElement.style.setProperty('--text', colors.textColor);
+                document.documentElement.style.setProperty('--text-secondary', colors.textSecondary);
+                document.documentElement.style.setProperty('--accent', colors.accent);
+                document.documentElement.style.setProperty('--accent-gold', colors.accentGold);
+                document.documentElement.style.setProperty('--border', colors.border);
+                if (theme === 'deep-teal') {
+                    document.documentElement.style.setProperty('--shadow-soft', '0 2px 20px rgba(0,0,0,0.7)');
+                    document.documentElement.style.setProperty('--shadow-medium', '0 8px 40px rgba(0,0,0,0.8)');
+                    document.documentElement.style.setProperty('--shadow-strong', '0 20px 60px rgba(0,0,0,0.9)');
+                } else {
+                    document.documentElement.style.setProperty('--shadow-soft', '0 2px 20px rgba(0, 0, 0, 0.06)');
+                    document.documentElement.style.setProperty('--shadow-medium', '0 8px 40px rgba(0, 0, 0, 0.10)');
+                    document.documentElement.style.setProperty('--shadow-strong', '0 20px 60px rgba(0, 0, 0, 0.14)');
+                }
+            }
+
+            // ─────────────────────────────────────
+            // CANVAS SIZING
+            // ─────────────────────────────────────
+            function resizeCanvas() {
+                const containerWidth = canvasContainer.clientWidth;
+                const containerHeight = canvasContainer.clientHeight;
+                const size = Math.min(containerWidth, containerHeight);
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                const internalSize = Math.floor(size * dpr);
+                if (canvas.width !== internalSize || canvas.height !== internalSize) {
+                    canvas.width = internalSize;
+                    canvas.height = internalSize;
+                }
+            }
+
+            // ─────────────────────────────────────
+            // RENDERER
+            // ─────────────────────────────────────
+            function getClockCenterAndRadius() {
+                const w = canvas.width;
+                const h = canvas.height;
+                const cx = w / 2;
+                const cy = h / 2;
+                const baseRadius = Math.min(w, h) * 0.44;
+                const sizeMult = clockSizePercent / 100;
+                const scaleMult = userScale;
+                const radius = baseRadius * sizeMult * scaleMult;
+                return { cx, cy, radius, w, h };
+            }
+
+            function drawClockFace(cx, cy, radius, colors) {
+                const shadowSpread = radius * 0.06;
+                const shadowGrad = ctx.createRadialGradient(cx, cy + radius * 0.03, radius * 0.92, cx, cy + radius * 0.06,
+                    radius * 1.08);
+                const shadowAlpha = shadowIntensity / 100;
+                shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                shadowGrad.addColorStop(0.7, `rgba(0,0,0,${0.15 * shadowAlpha})`);
+                shadowGrad.addColorStop(1, `rgba(0,0,0,${0.35 * shadowAlpha})`);
+                ctx.beginPath();
+                ctx.arc(cx, cy + radius * 0.02, radius * 1.08, 0, Math.PI * 2);
+                ctx.fillStyle = shadowGrad;
+                ctx.fill();
+
+                const bezelGrad = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+                bezelGrad.addColorStop(0, colors.bezelLight);
+                bezelGrad.addColorStop(0.35, colors.bezelDark);
+                bezelGrad.addColorStop(0.65, colors.bezelDark);
+                bezelGrad.addColorStop(1, colors.bezelLight);
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.025, 0, Math.PI * 2);
+                ctx.fillStyle = bezelGrad;
+                ctx.fill();
+
+                const faceGrad = ctx.createRadialGradient(cx - radius * 0.15, cy - radius * 0.2, radius * 0.05, cx, cy,
+                    radius);
+                faceGrad.addColorStop(0, colors.faceGradStart);
+                faceGrad.addColorStop(1, colors.faceGradEnd);
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = faceGrad;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.96, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0,0,0,${0.06 * shadowAlpha})`;
+                ctx.lineWidth = radius * 0.008;
+                ctx.stroke();
+
+                const innerShadow = ctx.createRadialGradient(cx, cy, radius * 0.82, cx, cy, radius * 0.97);
+                innerShadow.addColorStop(0, 'rgba(0,0,0,0)');
+                innerShadow.addColorStop(1, `rgba(0,0,0,${0.1 * shadowAlpha})`);
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.97, 0, Math.PI * 2);
+                ctx.fillStyle = innerShadow;
+                ctx.fill();
+            }
+
+            function drawTicksAndNumerals(cx, cy, radius, colors) {
+                const alpha = shadowIntensity / 100;
+                for (let i = 0; i < 60; i++) {
+                    const angle = (i * 6 - 90) * Math.PI / 180;
+                    const isHour = i % 5 === 0;
+                    const tickStart = radius * (isHour ? 0.82 : 0.88);
+                    const tickEnd = radius * (isHour ? 0.94 : 0.93);
+                    const tickWidth = isHour ? radius * 0.018 : radius * 0.006;
+
+                    const x1 = cx + Math.cos(angle) * tickStart;
+                    const y1 = cy + Math.sin(angle) * tickStart;
+                    const x2 = cx + Math.cos(angle) * tickEnd;
+                    const y2 = cy + Math.sin(angle) * tickEnd;
+
+                    if (showTicks || isHour) {
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.strokeStyle = isHour ?
+                            `rgba(${hexToRgb(colors.tickColor)},${0.9 * alpha})` :
+                            `rgba(${hexToRgb(colors.tickColor)},${0.5 * alpha})`;
+                        ctx.lineWidth = tickWidth;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+                    }
+                }
+
+                const numeralRadius = radius * 0.72;
+                const romanMap = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+                const fontBase = radius * 0.20;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                for (let i = 1; i <= 12; i++) {
+                    const angle = (i * 30 - 90) * Math.PI / 180;
+                    const nx = cx + Math.cos(angle) * numeralRadius;
+                    const ny = cy + Math.sin(angle) * numeralRadius;
+                    const label = romanNumerals ? romanMap[i - 1] : i.toString();
+                    ctx.fillStyle = `rgba(${hexToRgb(colors.numeralColor)},${0.85 * alpha})`;
+                    const fontSize = romanNumerals ? fontBase * 0.85 : fontBase;
+                    ctx.font = `${fontSize}px "${getNumeralFont()}", "Segoe UI", "Helvetica Neue", sans-serif`;
+                    ctx.fillText(label, nx, ny);
+                }
+            }
+
+            function getNumeralFont() {
+                // Use a modern sans-serif font instead of Georgia
+                return 'Inter, "Segoe UI", "Helvetica Neue", sans-serif';
+            }
+
+            function hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ?
+                    `${parseInt(result[1],16)},${parseInt(result[2],16)},${parseInt(result[3],16)}` :
+                    '0,0,0';
+            }
+
+            function drawHand(ctx, cx, cy, angle, length, baseWidth, tipWidth, color, shadowColor, isSecondHand = false) {
+                const w = baseWidth * (handThicknessPercent / 100);
+                const tw = tipWidth * (handThicknessPercent / 100);
+                const tipX = cx + Math.cos(angle) * length;
+                const tipY = cy + Math.sin(angle) * length;
+                const backLength = length * (isSecondHand ? 0.22 : 0.14);
+                const backX = cx - Math.cos(angle) * backLength;
+                const backY = cy - Math.sin(angle) * backLength;
+
+                const perpAngle = angle + Math.PI / 2;
+                const baseOffsetX = Math.cos(perpAngle) * w;
+                const baseOffsetY = Math.sin(perpAngle) * w;
+                const tipOffsetX = Math.cos(perpAngle) * tw;
+                const tipOffsetY = Math.sin(perpAngle) * tw;
+                const backOffsetX = Math.cos(perpAngle) * w * 0.6;
+                const backOffsetY = Math.sin(perpAngle) * w * 0.6;
+
+                if (shadowIntensity > 10) {
+                    const sx = cx + Math.cos(angle + 0.04) * 2;
+                    const sy = cy + Math.sin(angle + 0.04) * 2 + radius() * 0.015;
+                    ctx.beginPath();
+                    ctx.moveTo(sx - backOffsetX, sy - backOffsetY);
+                    ctx.lineTo(sx - baseOffsetX, sy - baseOffsetY);
+                    ctx.lineTo(sx + tipOffsetX, sy + tipOffsetY);
+                    ctx.lineTo(sx + backOffsetX, sy + backOffsetY);
+                    ctx.closePath();
+                    ctx.fillStyle = shadowColor;
+                    ctx.fill();
+                }
+
+                const grad = ctx.createLinearGradient(
+                    cx - Math.cos(angle) * length * 0.3,
+                    cy - Math.sin(angle) * length * 0.3,
+                    tipX, tipY
+                );
+                grad.addColorStop(0, color);
+                grad.addColorStop(1, isSecondHand ? lightenColor(color, 0.2) : lightenColor(color, 0.08));
+
+                ctx.beginPath();
+                ctx.moveTo(cx - backOffsetX, cy - backOffsetY);
+                ctx.lineTo(cx - baseOffsetX, cy - baseOffsetY);
+                ctx.lineTo(tipX - tipOffsetX, tipY - tipOffsetY);
+                ctx.lineTo(tipX + tipOffsetX, tipY + tipOffsetY);
+                ctx.lineTo(cx + baseOffsetX, cy + baseOffsetY);
+                ctx.lineTo(cx + backOffsetX, cy + backOffsetY);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                if (!isSecondHand) {
+                    const hlGrad = ctx.createLinearGradient(cx - baseOffsetX, cy - baseOffsetY, cx + baseOffsetX, cy +
+                        baseOffsetY);
+                    hlGrad.addColorStop(0, 'rgba(255,255,255,0.12)');
+                    hlGrad.addColorStop(0.5, 'rgba(255,255,255,0.03)');
+                    hlGrad.addColorStop(1, 'rgba(0,0,0,0.06)');
+                    ctx.beginPath();
+                    ctx.moveTo(cx - backOffsetX * 0.7, cy - backOffsetY * 0.7);
+                    ctx.lineTo(cx - baseOffsetX * 0.9, cy - baseOffsetY * 0.9);
+                    ctx.lineTo(tipX - tipOffsetX * 0.8, tipY - tipOffsetY * 0.8);
+                    ctx.lineTo(tipX + tipOffsetX * 0.3, tipY + tipOffsetY * 0.3);
+                    ctx.lineTo(cx + baseOffsetX * 0.4, cy + baseOffsetY * 0.4);
+                    ctx.lineTo(cx + backOffsetX * 0.3, cy + backOffsetY * 0.3);
+                    ctx.closePath();
+                    ctx.fillStyle = hlGrad;
+                    ctx.fill();
+                }
+            }
+
+            function radius() {
+                const { radius: r } = getClockCenterAndRadius();
+                return r;
+            }
+
+            function lightenColor(hex, amount) {
+                const rgb = hexToRgb(hex).split(',').map(Number);
+                const r = Math.min(255, rgb[0] + (255 - rgb[0]) * amount);
+                const g = Math.min(255, rgb[1] + (255 - rgb[1]) * amount);
+                const b = Math.min(255, rgb[2] + (255 - rgb[2]) * amount);
+                return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+            }
+
+            function drawGlassReflection(cx, cy, radius, colors) {
+                const intensity = reflectionIntensity / 100;
+                if (intensity < 0.01) return;
+                const grad = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.35, radius * 0.08, cx - radius * 0.05,
+                    cy - radius * 0.05, radius * 1.3);
+                grad.addColorStop(0, `rgba(255,255,255,${0.5 * intensity})`);
+                grad.addColorStop(0.25, `rgba(255,255,255,${0.25 * intensity})`);
+                grad.addColorStop(0.55, 'rgba(255,255,255,0)');
+                grad.addColorStop(0.75, `rgba(255,255,255,${0.04 * intensity})`);
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.99, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                const streakGrad = ctx.createLinearGradient(
+                    cx - radius * 0.7, cy - radius * 0.9,
+                    cx + radius * 0.5, cy + radius * 0.7
+                );
+                streakGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                streakGrad.addColorStop(0.35, `rgba(255,255,255,${0.18 * intensity})`);
+                streakGrad.addColorStop(0.5, `rgba(255,255,255,${0.22 * intensity})`);
+                streakGrad.addColorStop(0.65, `rgba(255,255,255,${0.1 * intensity})`);
+                streakGrad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.98, 0, Math.PI * 2);
+                ctx.fillStyle = streakGrad;
+                ctx.fill();
+            }
+
+            function drawCenterCap(cx, cy, radius, colors) {
+                const capR = radius * 0.06;
+                const capGrad = ctx.createRadialGradient(cx - capR * 0.3, cy - capR * 0.35, capR * 0.05, cx, cy, capR);
+                capGrad.addColorStop(0, colors.centerCapColor);
+                capGrad.addColorStop(0.6, colors.centerCapDark);
+                capGrad.addColorStop(1, '#061010');
+                ctx.beginPath();
+                ctx.arc(cx, cy, capR, 0, Math.PI * 2);
+                ctx.fillStyle = capGrad;
+                ctx.fill();
+
+                const hlGrad = ctx.createRadialGradient(cx - capR * 0.25, cy - capR * 0.3, capR * 0.02, cx, cy, capR * 0.8);
+                hlGrad.addColorStop(0, 'rgba(255,255,255,0.55)');
+                hlGrad.addColorStop(0.5, 'rgba(255,255,255,0.1)');
+                hlGrad.addColorStop(1, 'rgba(0,0,0,0.3)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, capR * 0.85, 0, Math.PI * 2);
+                ctx.fillStyle = hlGrad;
+                ctx.fill();
+            }
+
+            function render(clockTimeMs) {
+                resizeCanvas();
+                const { cx, cy, radius: r, w, h } = getClockCenterAndRadius();
+                ctx.clearRect(0, 0, w, h);
+
+                const colors = getThemeColors(currentTheme);
+                const date = new Date(clockTimeMs);
+                const hours = date.getHours();
+                const minutes = date.getMinutes();
+                const seconds = date.getSeconds();
+                const millis = date.getMilliseconds();
+
+                let secondAngle, minuteAngle, hourAngle;
+                if (sweepMode) {
+                    secondAngle = ((seconds + millis / 1000) / 60) * Math.PI * 2 - Math.PI / 2;
+                    minuteAngle = ((minutes + seconds / 60 + millis / 60000) / 60) * Math.PI * 2 - Math.PI / 2;
+                    hourAngle = (((hours % 12) + minutes / 60 + seconds / 3600) / 12) * Math.PI * 2 - Math.PI / 2;
+                } else {
+                    secondAngle = (seconds / 60) * Math.PI * 2 - Math.PI / 2;
+                    minuteAngle = ((minutes + seconds / 60) / 60) * Math.PI * 2 - Math.PI / 2;
+                    hourAngle = (((hours % 12) + minutes / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+                }
+
+                if (isCalibrating) {
+                    const elapsed = performance.now() - calibrationStartTime;
+                    const progress = Math.min(elapsed / calibrationDuration, 1);
+                    calibrationProgress = progress;
+                    const eased = easeOutCubic(progress);
+
+                    const targetSecondAngle = secondAngle;
+                    const extraRotations = calibrationSecondRotations * (1 - eased);
+                    secondAngle = targetSecondAngle - extraRotations * Math.PI * 2 + calibrationStartOffset * (1 - eased);
+
+                    const settleOffset = 0.06 * (1 - eased) * Math.sin(progress * Math.PI * 3);
+                    hourAngle += settleOffset;
+                    minuteAngle -= settleOffset * 0.7;
+
+                    if (progress >= 1) {
+                        isCalibrating = false;
+                        calibrationProgress = 1;
+                        canvasContainer.classList.remove('calibrating');
+                    }
+                }
+
+                const shadowAlpha = shadowIntensity / 100;
+                const shadowCol = `rgba(0,0,0,${0.5 * shadowAlpha})`;
+
+                drawClockFace(cx, cy, r, colors);
+                drawTicksAndNumerals(cx, cy, r, colors);
+
+                const hrLen = r * 0.54;
+                const minLen = r * 0.76;
+                const secLen = r * 0.82;
+                const hrBaseW = r * 0.044;
+                const hrTipW = r * 0.018;
+                const minBaseW = r * 0.034;
+                const minTipW = r * 0.013;
+                const secBaseW = r * 0.012;
+                const secTipW = r * 0.005;
+
+                drawHand(ctx, cx, cy, hourAngle, hrLen, hrBaseW, hrTipW, colors.hourHandColor, shadowCol, false);
+                drawHand(ctx, cx, cy, minuteAngle, minLen, minBaseW, minTipW, colors.minuteHandColor, shadowCol, false);
+                drawHand(ctx, cx, cy, secondAngle, secLen, secBaseW, secTipW, colors.secondHandColor, shadowCol, true);
+
+                drawCenterCap(cx, cy, r, colors);
+                drawGlassReflection(cx, cy, r, colors);
+
+                const timeStr = formatTime(date);
+                if (timeDisplay.textContent !== timeStr) {
+                    timeDisplay.textContent = timeStr;
+                }
+            }
+
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function formatTime(date) {
+                const h = date.getHours().toString().padStart(2, '0');
+                const m = date.getMinutes().toString().padStart(2, '0');
+                const s = date.getSeconds().toString().padStart(2, '0');
+                return `${h}:${m}:${s}`;
+            }
+
+            // ─────────────────────────────────────
+            // MAIN ANIMATION LOOP
+            // ─────────────────────────────────────
+            function getCurrentClockTime() {
+                if (mode === 'real') {
+                    return Date.now();
+                }
+                return customTimeMs;
+            }
+
+            function animationLoop(timestamp) {
+                requestAnimationFrame(animationLoop);
+
+                let delta = timestamp - lastFrameTime;
+                if (delta <= 0) delta = 16.67;
+                if (delta > 200) delta = 200;
+                lastFrameTime = timestamp;
+
+                if (!paused && !isCalibrating) {
+                    if (mode === 'real') {
+                        customTimeMs = Date.now();
+                    } else {
+                        customTimeMs += delta * speed;
+                    }
+                }
+
+                const clockTime = getCurrentClockTime();
+                const date = new Date(clockTime);
+
+                const currentSecond = date.getSeconds();
+                if (!sweepMode && soundEnabled && !paused && !isCalibrating) {
+                    if (currentSecond !== lastTickSecond) {
+                        lastTickSecond = currentSecond;
+                        if (Math.abs(speed) <= 2) {
+                            playTick();
+                        } else if (Math.abs(speed) <= 5) {
+                            playTick(0.7);
+                        } else {
+                            playMechanicalClick(0.5);
+                        }
+                    }
+                }
+                if (sweepMode && soundEnabled && !paused && !isCalibrating && Math.abs(speed) <= 2) {
+                    const subSecond = date.getMilliseconds() / 1000;
+                    const sweepTickPosition = Math.floor(subSecond * 4);
+                    if (sweepTickPosition !== lastTickSecond && Math.abs(speed) <= 1.5) {
+                        lastTickSecond = sweepTickPosition;
+                        playMechanicalClick(0.25);
+                    }
+                }
+
+                render(clockTime);
+                updateSpeedIndicator();
+            }
+
+            function updateSpeedIndicator() {
+                if (mode === 'real' && speed === 1 && !paused) {
+                    speedIndicator.classList.add('hidden-indicator');
+                } else {
+                    speedIndicator.classList.remove('hidden-indicator');
+                    let label = '';
+                    if (paused) {
+                        label = '⏸ Paused';
+                    } else if (speed < 0) {
+                        label = `↺ ${Math.abs(speed)}×`;
+                    } else if (speed === 1 && mode === 'real') {
+                        label = '1×';
+                    } else {
+                        label = `${speed}×`;
+                    }
+                    if (mode === 'custom' && speed === 1 && !paused) {
+                        label = 'Custom';
+                    }
+                    speedIndicator.textContent = label;
+                }
+            }
+
+            // ─────────────────────────────────────
+            // UI CONTROLLER
+            // ─────────────────────────────────────
+            let settingsOpen = false;
+            let inactivityTimeout;
+            let uiHidden = false;
+            let focusMode = false;
+
+            function toggleSettings() {
+                settingsOpen = !settingsOpen;
+                if (settingsOpen) {
+                    settingsPanel.classList.add('open');
+                    overlayBackdrop.classList.add('visible');
+                    resetInactivityTimer();
+                } else {
+                    settingsPanel.classList.remove('open');
+                    overlayBackdrop.classList.remove('visible');
+                }
+            }
+
+            function closeSettings() {
+                settingsOpen = false;
+                settingsPanel.classList.remove('open');
+                overlayBackdrop.classList.remove('visible');
+            }
+
+            function resetInactivityTimer() {
+                if (uiHidden) {
+                    body.classList.remove('ui-hidden');
+                    uiHidden = false;
+                }
+                clearTimeout(inactivityTimeout);
+                if (!focusMode && !settingsOpen) {
+                    inactivityTimeout = setTimeout(() => {
+                        if (!settingsOpen && !focusMode) {
+                            body.classList.add('ui-hidden');
+                            uiHidden = true;
+                        }
+                    }, 4000);
+                }
+            }
+
+            function toggleFullscreen() {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    const el = document.documentElement;
+                    if (el.requestFullscreen) {
+                        el.requestFullscreen().catch(() => {});
+                    } else if (el.webkitRequestFullscreen) {
+                        el.webkitRequestFullscreen();
+                    }
+                    focusMode = true;
+                    body.classList.add('focus-mode');
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                    focusMode = false;
+                    body.classList.remove('focus-mode');
+                    resetInactivityTimer();
+                }
+            }
+
+            function toggleSound() {
+                soundEnabled = !soundEnabled;
+                settings.soundEnabled = soundEnabled;
+                saveSettings();
+                updateSoundButton();
+                updateToggleStates();
+                if (soundEnabled) initAudio();
+            }
+
+            function toggleSweepMode() {
+                sweepMode = !sweepMode;
+                settings.sweepMode = sweepMode;
+                saveSettings();
+                updateModeButton();
+                updateToggleStates();
+            }
+
+            function toggleRealTimeMode() {
+                if (mode === 'real') {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                } else {
+                    mode = 'real';
+                    speed = 1;
+                    settings.speed = 1;
+                    settings.realTimeMode = true;
+                }
+                saveSettings();
+                updateToggleStates();
+                updateSpeedButtons();
+                updateSpeedIndicator();
+            }
+
+            function setSpeed(newSpeed) {
+                if (mode === 'real' && newSpeed !== 1) {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                    updateToggleStates();
+                }
+                speed = newSpeed;
+                settings.speed = newSpeed;
+                saveSettings();
+                updateSpeedButtons();
+                updateSpeedIndicator();
+            }
+
+            function updateSoundButton() {
+                const btn = document.getElementById('btnSound');
+                const span = btn.querySelector('span');
+                span.textContent = soundEnabled ? '🔊' : '🔇';
+                if (soundEnabled) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+
+            function updateModeButton() {
+                const btn = document.getElementById('btnMode');
+                const span = btn.querySelector('span');
+                span.textContent = sweepMode ? '◎' : '⏲';
+                if (sweepMode) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+
+            function updateToggleStates() {
+                const toggleSweep = document.getElementById('toggleSweep');
+                const toggleSound = document.getElementById('toggleSound');
+                const toggleRealTime = document.getElementById('toggleRealTime');
+                const toggleRoman = document.getElementById('toggleRoman');
+                const toggleTicks = document.getElementById('toggleTicks');
+
+                if (sweepMode) toggleSweep.classList.add('on');
+                else toggleSweep.classList.remove('on');
+                if (soundEnabled) toggleSound.classList.add('on');
+                else toggleSound.classList.remove('on');
+                if (mode === 'real') toggleRealTime.classList.add('on');
+                else toggleRealTime.classList.remove('on');
+                if (romanNumerals) toggleRoman.classList.add('on');
+                else toggleRoman.classList.remove('on');
+                if (showTicks) toggleTicks.classList.add('on');
+                else toggleTicks.classList.remove('on');
+            }
+
+            function updateSpeedButtons() {
+                const buttons = document.querySelectorAll('#speedBtnRow .btn-sm');
+                buttons.forEach(btn => {
+                    const btnSpeed = parseFloat(btn.dataset.speed);
+                    if (btnSpeed === speed) {
+                        btn.classList.add('active-btn');
+                    } else {
+                        btn.classList.remove('active-btn');
+                    }
+                });
+            }
+
+            function updateAllUI() {
+                updateSoundButton();
+                updateModeButton();
+                updateToggleStates();
+                updateSpeedButtons();
+                updateSpeedIndicator();
+                updateSliders();
+                updateThemeButtons();
+            }
+
+            function updateSliders() {
+                document.getElementById('sizeSlider').value = clockSizePercent;
+                document.getElementById('sizeVal').textContent = clockSizePercent + '%';
+                document.getElementById('thicknessSlider').value = handThicknessPercent;
+                document.getElementById('thicknessVal').textContent = handThicknessPercent + '%';
+                document.getElementById('shadowSlider').value = shadowIntensity;
+                document.getElementById('shadowVal').textContent = shadowIntensity + '%';
+                document.getElementById('reflectionSlider').value = reflectionIntensity;
+                document.getElementById('reflectionVal').textContent = reflectionIntensity + '%';
+                document.getElementById('volumeSlider').value = soundVolume;
+                document.getElementById('volumeVal').textContent = soundVolume + '%';
+            }
+
+            function updateThemeButtons() {
+                const buttons = document.querySelectorAll('#themeGrid .theme-btn');
+                buttons.forEach(btn => {
+                    if (btn.dataset.theme === currentTheme) {
+                        btn.classList.add('selected');
+                    } else {
+                        btn.classList.remove('selected');
+                    }
+                });
+            }
+
+            // ─────────────────────────────────────
+            // EVENT LISTENERS
+            // ─────────────────────────────────────
+            document.getElementById('btnSettings').addEventListener('click', toggleSettings);
+            document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+            document.getElementById('btnSound').addEventListener('click', toggleSound);
+            document.getElementById('btnMode').addEventListener('click', toggleSweepMode);
+            document.getElementById('btnCloseSettings').addEventListener('click', closeSettings);
+            overlayBackdrop.addEventListener('click', closeSettings);
+
+            document.getElementById('toggleSweep').addEventListener('click', toggleSweepMode);
+            document.getElementById('toggleSound').addEventListener('click', toggleSound);
+            document.getElementById('toggleRealTime').addEventListener('click', toggleRealTimeMode);
+            document.getElementById('toggleRoman').addEventListener('click', () => {
+                romanNumerals = !romanNumerals;
+                settings.romanNumerals = romanNumerals;
+                saveSettings();
+                updateToggleStates();
+            });
+            document.getElementById('toggleTicks').addEventListener('click', () => {
+                showTicks = !showTicks;
+                settings.showTicks = showTicks;
+                saveSettings();
+                updateToggleStates();
+            });
+
+            document.getElementById('sizeSlider').addEventListener('input', (e) => {
+                clockSizePercent = parseInt(e.target.value);
+                settings.clockSize = clockSizePercent;
+                document.getElementById('sizeVal').textContent = clockSizePercent + '%';
+                saveSettings();
+            });
+            document.getElementById('thicknessSlider').addEventListener('input', (e) => {
+                handThicknessPercent = parseInt(e.target.value);
+                settings.handThickness = handThicknessPercent;
+                document.getElementById('thicknessVal').textContent = handThicknessPercent + '%';
+                saveSettings();
+            });
+            document.getElementById('shadowSlider').addEventListener('input', (e) => {
+                shadowIntensity = parseInt(e.target.value);
+                settings.shadowIntensity = shadowIntensity;
+                document.getElementById('shadowVal').textContent = shadowIntensity + '%';
+                saveSettings();
+            });
+            document.getElementById('reflectionSlider').addEventListener('input', (e) => {
+                reflectionIntensity = parseInt(e.target.value);
+                settings.reflectionIntensity = reflectionIntensity;
+                document.getElementById('reflectionVal').textContent = reflectionIntensity + '%';
+                saveSettings();
+            });
+            document.getElementById('volumeSlider').addEventListener('input', (e) => {
+                soundVolume = parseInt(e.target.value);
+                settings.soundVolume = soundVolume;
+                document.getElementById('volumeVal').textContent = soundVolume + '%';
+                saveSettings();
+                if (soundVolume > 0 && soundEnabled) initAudio();
+            });
+
+            document.querySelectorAll('#speedBtnRow .btn-sm').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const spd = parseFloat(btn.dataset.speed);
+                    setSpeed(spd);
+                });
+            });
+
+            document.getElementById('btnHourUp').addEventListener('click', () => {
+                if (mode === 'real') {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                    updateToggleStates();
+                }
+                customTimeMs += 3600000;
+                saveCustomTime();
+            });
+            document.getElementById('btnHourDown').addEventListener('click', () => {
+                if (mode === 'real') {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                    updateToggleStates();
+                }
+                customTimeMs -= 3600000;
+                saveCustomTime();
+            });
+            document.getElementById('btnMinUp').addEventListener('click', () => {
+                if (mode === 'real') {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                    updateToggleStates();
+                }
+                customTimeMs += 900000;
+                saveCustomTime();
+            });
+            document.getElementById('btnMinDown').addEventListener('click', () => {
+                if (mode === 'real') {
+                    mode = 'custom';
+                    customTimeMs = Date.now();
+                    settings.realTimeMode = false;
+                    updateToggleStates();
+                }
+                customTimeMs -= 900000;
+                saveCustomTime();
+            });
+            document.getElementById('btnResetTime').addEventListener('click', () => {
+                customTimeMs = Date.now();
+                mode = 'real';
+                speed = 1;
+                settings.realTimeMode = true;
+                settings.speed = 1;
+                saveSettings();
+                updateAllUI();
+            });
+
+            function saveCustomTime() {
+                const d = new Date(customTimeMs);
+                settings.customHour = d.getHours();
+                settings.customMinute = d.getMinutes();
+                settings.customSecond = d.getSeconds();
+                saveSettings();
+            }
+
+            document.querySelectorAll('#themeGrid .theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentTheme = btn.dataset.theme;
+                    settings.theme = currentTheme;
+                    applyThemeToDOM(currentTheme);
+                    saveSettings();
+                    updateThemeButtons();
+                });
+            });
+
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                switch (key) {
+                    case ' ':
+                        e.preventDefault();
+                        paused = !paused;
+                        updateSpeedIndicator();
+                        break;
+                    case 'r':
+                        if (!e.ctrlKey && !e.metaKey) {
+                            mode = 'real';
+                            speed = 1;
+                            settings.realTimeMode = true;
+                            settings.speed = 1;
+                            saveSettings();
+                            updateAllUI();
+                        }
+                        break;
+                    case 't':
+                        toggleSweepMode();
+                        break;
+                    case 'f':
+                        if (!e.ctrlKey && !e.metaKey) {
+                            toggleFullscreen();
+                        }
+                        break;
+                    case 'arrowup':
+                        e.preventDefault();
+                        if (speed < 10) {
+                            const speeds = [0.25, 0.5, 1, 2, 5, 10];
+                            const currentIdx = speeds.indexOf(speed);
+                            const nextIdx = Math.min(currentIdx + 1, speeds.length - 1);
+                            setSpeed(speeds[nextIdx >= 0 ? nextIdx : 2]);
+                        }
+                        break;
+                    case 'arrowdown':
+                        e.preventDefault();
+                        const speeds = [0.25, 0.5, 1, 2, 5, 10];
+                        const currentIdx = speeds.indexOf(speed);
+                        const prevIdx = Math.max(currentIdx - 1, 0);
+                        setSpeed(speeds[currentIdx >= 0 ? prevIdx : 0]);
+                        break;
+                    case 'm':
+                        toggleSound();
+                        break;
+                    case 'escape':
+                        if (settingsOpen) closeSettings();
+                        if (focusMode) toggleFullscreen();
+                        break;
+                }
+                resetInactivityTimer();
+            });
+
+            ['mousemove', 'mousedown', 'touchstart', 'touchmove', 'click'].forEach(evt => {
+                document.addEventListener(evt, () => {
+                    resetInactivityTimer();
+                    if (soundEnabled) initAudio();
+                }, { passive: true });
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    focusMode = false;
+                    body.classList.remove('focus-mode');
+                    resetInactivityTimer();
+                }
+            });
+            document.addEventListener('webkitfullscreenchange', () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    focusMode = false;
+                    body.classList.remove('focus-mode');
+                    resetInactivityTimer();
+                }
+            });
+
+            let pinchStartDist = 0;
+            let pinchStartScale = 1;
+            canvasContainer.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    pinchStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    pinchStartScale = userScale;
+                }
+            }, { passive: true });
+            canvasContainer.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && pinchStartDist > 0) {
+                    const currentDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const scaleChange = currentDist / pinchStartDist;
+                    userScale = Math.max(0.5, Math.min(2.5, pinchStartScale * scaleChange));
+                    settings.userScale = userScale;
+                    saveSettings();
+                }
+            }, { passive: true });
+            canvasContainer.addEventListener('touchend', () => {
+                pinchStartDist = 0;
+            });
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+            });
+
+            // ─────────────────────────────────────
+            // INITIALIZATION
+            // ─────────────────────────────────────
+            function init() {
+                mode = settings.realTimeMode ? 'real' : 'custom';
+                speed = settings.speed;
+                sweepMode = settings.sweepMode;
+                soundEnabled = settings.soundEnabled;
+                soundVolume = settings.soundVolume;
+                clockSizePercent = settings.clockSize;
+                handThicknessPercent = settings.handThickness;
+                shadowIntensity = settings.shadowIntensity;
+                reflectionIntensity = settings.reflectionIntensity;
+                romanNumerals = settings.romanNumerals;
+                showTicks = settings.showTicks;
+                currentTheme = settings.theme;
+                userScale = settings.userScale || 1;
+
+                if (!settings.realTimeMode && settings.customHour !== undefined) {
+                    const now = new Date();
+                    now.setHours(settings.customHour, settings.customMinute, settings.customSecond, 0);
+                    customTimeMs = now.getTime();
+                } else {
+                    customTimeMs = Date.now();
+                }
+
+                applyThemeToDOM(currentTheme);
+                resizeCanvas();
+                updateAllUI();
+
+                isCalibrating = true;
+                calibrationStartTime = performance.now();
+                calibrationProgress = 0;
+                calibrationStartOffset = Math.random() * Math.PI * 2;
+                canvasContainer.classList.add('calibrating');
+                lastTickSecond = -1;
+
+                render(getCurrentClockTime());
+
+                lastFrameTime = performance.now();
+                requestAnimationFrame(animationLoop);
+
+                resetInactivityTimer();
+
+                // Auto-init audio on first user interaction
+                if (soundEnabled) {
+                    document.addEventListener('click', function initAudioOnce() {
+                        initAudio();
+                    }, { once: true });
+                    document.addEventListener('touchstart', function initAudioOnceTouch() {
+                        initAudio();
+                    }, { once: true });
+                }
+            }
+
+            init();
+
+            console.log('%c🕰️ Luxury Analog Clock %cDeep Blue‑Green',
+                'font-size:16px;font-family:Georgia,serif;color:#2dd4bf;',
+                'font-size:12px;color:#4a8a7a;');
+            console.log('%cDarker dial • Sans‑serif numerals • Enhanced sound',
+                'font-size:10px;color:#6a9e8f;letter-spacing:1px;');
+            console.log('%cKeyboard: Space Pause • R Real‑Time • T Tick/Sweep • F Fullscreen • M Mute • ↑↓ Speed',
+                'font-size:9px;color:#3a6a5a;');
+        })();
+    </script>
+</body>
+</html>
