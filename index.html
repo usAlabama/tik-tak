@@ -8,20 +8,17 @@
 
     <style>
         :root {
-            /* Base dark blue-grey theme */
             --bg: #05090b;
             --surface: #0a1216;
             --border: #14242b;
             --text-secondary: #4a6b75;
 
-            /* Dynamic accent color (updated via JS) */
             --accent: #2dd4bf;
             --accent-rgb: 45, 212, 191;
 
             --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.7);
             --shadow-medium: 0 8px 40px rgba(0, 0, 0, 0.8);
             --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.9);
-            --radius: 18px;
             --transition-smooth: 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
             --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
             --font-display: 'Georgia', 'Times New Roman', 'Palatino Linotype', 'Book Antiqua', serif;
@@ -96,7 +93,7 @@
         }
 
         /* ─────────────────────────────────────
-           TICKERS (Top / Bottom)
+           TICKERS
         ───────────────────────────────────── */
         .ticker {
             position: fixed;
@@ -113,7 +110,6 @@
             -webkit-user-select: none;
             text-rendering: geometricPrecision;
         }
-
         .ticker--top { top: 0; }
         .ticker--bottom { bottom: 0; }
 
@@ -133,7 +129,6 @@
             will-change: transform;
             transform: translate3d(0,0,0);
 
-            /* IMPORTANT: avoid animation shorthand with CSS vars (some engines invalidate entire animation on bad var update) */
             animation-name: tickerScroll;
             animation-duration: var(--ticker-duration, 28s);
             animation-timing-function: linear;
@@ -176,19 +171,12 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .ticker__chg {
-            font-variant-numeric: tabular-nums;
-            font-weight: 600;
-        }
-
+        .ticker__chg { font-variant-numeric: tabular-nums; font-weight: 600; }
         .ticker__chg.up { color: var(--up); }
         .ticker__chg.down { color: var(--down); }
         .ticker__chg.flat { color: rgba(209, 228, 232, 0.65); font-weight: 500; }
 
-        .ticker__meta {
-            color: rgba(209, 228, 232, 0.58);
-            font-weight: 500;
-        }
+        .ticker__meta { color: rgba(209, 228, 232, 0.58); font-weight: 500; }
 
         .ticker a {
             color: rgba(209, 228, 232, 0.88);
@@ -223,13 +211,7 @@
             100% { transform: scale(1); filter: blur(0); }
         }
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            transition: filter 0.5s ease;
-        }
+        canvas { display: block; width: 100%; height: 100%; border-radius: 50%; }
 
         .ui-top-bar {
             position: fixed;
@@ -245,7 +227,6 @@
             pointer-events: none;
             transition: opacity var(--transition-smooth);
         }
-
         .ui-top-bar > * { pointer-events: auto; }
 
         .btn-icon {
@@ -274,15 +255,10 @@
             transform: translateY(-1px);
         }
 
-        .btn-icon:active {
-            transform: scale(0.94);
-            transition: transform 0.1s ease;
-        }
-
+        .btn-icon:active { transform: scale(0.94); transition: transform 0.1s ease; }
         .btn-icon.active {
             background: rgba(20, 36, 43, 0.9);
             border-color: var(--accent);
-            color: var(--accent);
             box-shadow: 0 0 28px rgba(var(--accent-rgb), 0.2);
         }
 
@@ -303,7 +279,6 @@
             font-family: var(--font-ui);
             border: 1px solid var(--border);
         }
-
         .btn-icon:hover .tooltip { opacity: 1; }
 
         .bottom-indicators {
@@ -332,7 +307,6 @@
             box-shadow: var(--shadow-soft);
             min-width: 100px;
             text-align: center;
-            transition: all var(--transition-fast);
         }
 
         .settings-panel {
@@ -351,16 +325,12 @@
             transition: transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
             box-shadow: -8px 0 60px rgba(0, 0, 0, 0.7);
             overflow-y: auto;
-            overflow-x: hidden;
             padding: 24px 20px 40px;
             display: flex;
             flex-direction: column;
             gap: 20px;
-            scroll-behavior: smooth;
         }
-
         .settings-panel.open { transform: translateX(0); }
-
         .settings-panel::-webkit-scrollbar { width: 4px; }
         .settings-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
@@ -385,18 +355,9 @@
             margin-bottom: 2px;
         }
 
-        .settings-note {
-            font-size: 12px;
-            color: rgba(209, 228, 232, 0.72);
-            line-height: 1.35;
-        }
+        .settings-note { font-size: 12px; color: rgba(209, 228, 232, 0.72); line-height: 1.35; }
 
-        .divider {
-            height: 1px;
-            background: rgba(20, 36, 43, 0.75);
-            border: none;
-            margin: 6px 0 2px 0;
-        }
+        .divider { height: 1px; background: rgba(20, 36, 43, 0.75); border: none; margin: 6px 0 2px 0; }
 
         .color-picker-row { display: flex; align-items: center; gap: 12px; }
 
@@ -410,15 +371,11 @@
             padding: 0;
             background: none;
             box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.2);
-            transition: transform var(--transition-fast);
         }
-
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid var(--border); border-radius: 50%; }
-        input[type="color"]:hover { transform: scale(1.05); }
 
         .slider-group { display: flex; align-items: center; gap: 10px; }
-
         .slider-group input[type="range"] {
             flex: 1;
             -webkit-appearance: none;
@@ -428,7 +385,6 @@
             outline: none;
             cursor: pointer;
         }
-
         .slider-group input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 22px;
@@ -440,13 +396,7 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
         }
 
-        .slider-val {
-            font-size: 11px;
-            color: var(--text-secondary);
-            min-width: 52px;
-            text-align: right;
-            letter-spacing: 0.5px;
-        }
+        .slider-val { font-size: 11px; color: var(--text-secondary); min-width: 52px; text-align: right; }
 
         .toggle-row {
             display: flex;
@@ -455,12 +405,7 @@
             padding: 6px 0;
             gap: 12px;
         }
-
-        .toggle-row span {
-            font-size: 13px;
-            color: #d1e4e8;
-            letter-spacing: 0.3px;
-        }
+        .toggle-row span { font-size: 13px; color: #d1e4e8; letter-spacing: 0.3px; }
 
         .toggle-switch {
             width: 44px;
@@ -472,9 +417,7 @@
             transition: background var(--transition-fast);
             flex-shrink: 0;
         }
-
         .toggle-switch.on { background: var(--accent); }
-
         .toggle-switch::after {
             content: '';
             position: absolute;
@@ -487,11 +430,7 @@
             transition: transform var(--transition-fast);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
-
-        .toggle-switch.on::after {
-            transform: translateX(18px);
-            background: #ffffff;
-        }
+        .toggle-switch.on::after { transform: translateX(18px); background: #ffffff; }
 
         .btn-sm {
             padding: 8px 14px;
@@ -506,12 +445,7 @@
             font-family: var(--font-ui);
             white-space: nowrap;
         }
-
-        .btn-sm:hover {
-            background: rgba(20, 36, 43, 0.6);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
+        .btn-sm:hover { background: rgba(20, 36, 43, 0.6); border-color: var(--accent); color: var(--accent); }
 
         .control-input {
             width: 100%;
@@ -524,26 +458,12 @@
             transition: border-color var(--transition-fast), background var(--transition-fast);
             font-family: var(--font-ui);
         }
+        .control-input:focus { border-color: rgba(var(--accent-rgb), 0.9); background: rgba(20, 36, 43, 0.36); }
 
-        .control-input:focus {
-            border-color: rgba(var(--accent-rgb), 0.9);
-            background: rgba(20, 36, 43, 0.36);
-        }
-
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .row { display: flex; align-items: center; gap: 10px; }
         .row > * { flex: 1; }
 
-        .rss-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        .rss-list { display: flex; flex-direction: column; gap: 8px; }
         .rss-item {
             display: flex;
             align-items: center;
@@ -554,7 +474,6 @@
             border-radius: 14px;
             background: rgba(10, 18, 22, 0.4);
         }
-
         .rss-item code {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 11px;
@@ -565,15 +484,8 @@
             max-width: 240px;
         }
 
-        .btn-danger {
-            border-color: rgba(239, 68, 68, 0.35);
-            color: rgba(239, 68, 68, 0.85);
-        }
-        .btn-danger:hover {
-            border-color: rgba(239, 68, 68, 0.7);
-            color: rgba(239, 68, 68, 1);
-            background: rgba(239, 68, 68, 0.08);
-        }
+        .btn-danger { border-color: rgba(239, 68, 68, 0.35); color: rgba(239, 68, 68, 0.85); }
+        .btn-danger:hover { border-color: rgba(239, 68, 68, 0.7); color: rgba(239, 68, 68, 1); background: rgba(239, 68, 68, 0.08); }
 
         .overlay-backdrop {
             position: fixed;
@@ -584,13 +496,8 @@
             pointer-events: none;
             transition: opacity 0.35s ease;
         }
+        .overlay-backdrop.visible { opacity: 1; pointer-events: auto; }
 
-        .overlay-backdrop.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* Mobile scaling & layout */
         @media (max-width: 768px) {
             .settings-panel {
                 width: 100%;
@@ -606,35 +513,13 @@
                 transform: translateY(105%);
                 padding: 20px 16px 40px;
             }
-
             .settings-panel.open { transform: translateY(0); }
-
-            .canvas-container {
-                width: min(85vw, 85dvh, 400px);
-                height: min(85vw, 85dvh, 400px);
-            }
-
+            .canvas-container { width: min(85vw, 85dvh, 400px); height: min(85vw, 85dvh, 400px); }
             .ui-top-bar { padding: 10px 12px; gap: 4px; }
             .btn-icon { width: 38px; height: 38px; font-size: 16px; }
-
-            .time-display {
-                font-size: 13px;
-                padding: 6px 14px;
-                letter-spacing: 1.5px;
-            }
-
             .bottom-indicators { bottom: calc(var(--bottom-ticker-height) + 14px); }
-
             .btn-icon .tooltip { display: none; }
-
             .rss-item code { max-width: 200px; }
-        }
-
-        @media (min-width: 1400px) {
-            .canvas-container {
-                width: min(45vw, 650px);
-                height: min(45vw, 650px);
-            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -645,7 +530,6 @@
 
 <body>
     <div id="app">
-        <!-- Top Market Ticker -->
         <div class="ticker ticker--top" id="marketTicker" role="region" aria-label="Market ticker">
             <div class="ticker__viewport">
                 <div class="ticker__track" id="marketTickerTrack">
@@ -682,7 +566,6 @@
             <div class="time-display" id="timeDisplay">12:00:00</div>
         </div>
 
-        <!-- Bottom RSS Ticker -->
         <div class="ticker ticker--bottom" id="rssTicker" role="region" aria-label="RSS ticker">
             <div class="ticker__viewport">
                 <div class="ticker__track" id="rssTickerTrack">
@@ -745,6 +628,9 @@
                     <input type="range" id="volumeSlider" min="0" max="100" value="50" step="1" />
                     <span class="slider-val" id="volumeVal">50%</span>
                 </div>
+                <div class="settings-note">
+                    Звук стартует только после клика/тапа/нажатия клавиши (ограничение браузера).
+                </div>
             </div>
 
             <div class="settings-section">
@@ -775,7 +661,7 @@
                     <span class="slider-val" id="tickerScaleVal">100%</span>
                 </div>
                 <div class="settings-note">
-                    Top and bottom tickers share the same size styling (synchronized).
+                    Верхняя и нижняя строки синхронны по размеру.
                 </div>
             </div>
 
@@ -787,8 +673,7 @@
                 <label>CORS Proxy Base URL</label>
                 <input class="control-input" type="text" id="proxyBaseInput" spellcheck="false" placeholder="https://api.allorigins.win/raw?url=" />
                 <div class="settings-note">
-                    Если вы открываете страницу как <b>file://</b>, прямой fetch RSS почти всегда упадёт по CORS.
-                    Включите proxy. Запросы в фоне/скрытой вкладке не выполняются.
+                    На GitHub Pages почти любой RSS будет блокироваться CORS. Поэтому для RSS используется <b>proxy-first</b> (без попытки direct) — так не будет CORS-ошибок и строка не “умирает”.
                 </div>
             </div>
 
@@ -824,9 +709,6 @@
                 <div class="toggle-row">
                     <span>Bonus: Oil / Gold / Silver / S&amp;P 500 (best-effort)</span>
                     <div class="toggle-switch" id="toggleBonusAssets"></div>
-                </div>
-                <div class="settings-note">
-                    Bonus-активы берутся со Stooq (через proxy при необходимости). Если источник недоступен — будет N/A без агрессивных повторов.
                 </div>
 
                 <label>Speed (px/s)</label>
@@ -882,10 +764,16 @@
             "use strict";
 
             // ─────────────────────────────────────
-            // DOM REFERENCES
+            // DOM
             // ─────────────────────────────────────
             const canvas = document.getElementById("clockCanvas");
             const ctx = canvas.getContext("2d", { alpha: true });
+            
+            // Offscreen canvas cache for massive performance boost
+            const offscreenCanvas = document.createElement("canvas");
+            const offscreenCtx = offscreenCanvas.getContext("2d", { alpha: true });
+            let isFaceCached = false;
+
             const canvasContainer = document.getElementById("canvasContainer");
             const timeDisplay = document.getElementById("timeDisplay");
             const settingsPanel = document.getElementById("settingsPanel");
@@ -893,7 +781,6 @@
             const body = document.body;
             const colorPicker = document.getElementById("colorPicker");
 
-            // Tickers
             const marketTicker = document.getElementById("marketTicker");
             const marketTickerTrack = document.getElementById("marketTickerTrack");
             const marketTickerA = document.getElementById("marketTickerA");
@@ -904,13 +791,11 @@
             const rssTickerA = document.getElementById("rssTickerA");
             const rssTickerB = document.getElementById("rssTickerB");
 
-            // Controls
             const btnSound = document.getElementById("btnSound");
             const btnMode = document.getElementById("btnMode");
             const btnFullscreen = document.getElementById("btnFullscreen");
             const btnSettings = document.getElementById("btnSettings");
 
-            // Settings - tickers
             const toggleMarketTicker = document.getElementById("toggleMarketTicker");
             const toggleRssTicker = document.getElementById("toggleRssTicker");
             const tickerScaleSlider = document.getElementById("tickerScaleSlider");
@@ -922,23 +807,21 @@
             const cryptoSelect = document.getElementById("cryptoSelect");
             const vsCurrencySelect = document.getElementById("vsCurrencySelect");
             const toggleBonusAssets = document.getElementById("toggleBonusAssets");
-
             const marketRefreshSlider = document.getElementById("marketRefreshSlider");
             const marketRefreshVal = document.getElementById("marketRefreshVal");
             const rssRefreshSlider = document.getElementById("rssRefreshSlider");
             const rssRefreshVal = document.getElementById("rssRefreshVal");
-
             const toggleProxy = document.getElementById("toggleProxy");
             const proxyBaseInput = document.getElementById("proxyBaseInput");
-
             const rssAddInput = document.getElementById("rssAddInput");
             const btnAddRss = document.getElementById("btnAddRss");
             const rssSourcesList = document.getElementById("rssSourcesList");
 
             // ─────────────────────────────────────
-            // DEFAULT SETTINGS
+            // SETTINGS
             // ─────────────────────────────────────
             const DEFAULT_COLOR = "#2dd4bf";
+            const STORAGE_KEY = "luxury-clock-modern-settings";
 
             const defaultSettings = {
                 accentColor: DEFAULT_COLOR,
@@ -953,7 +836,6 @@
                 soundEnabled: true,
                 userScale: 1,
 
-                // Tickers
                 tickerScale: 100,
                 marketTickerEnabled: true,
                 rssTickerEnabled: true,
@@ -971,20 +853,17 @@
             };
 
             let settings = { ...defaultSettings };
-
-            // Visibility / lifecycle
             let isAppVisible = !document.hidden;
             let isFrozen = false;
-
-            // ─────────────────────────────────────
-            // LOAD / SAVE SETTINGS
-            // ─────────────────────────────────────
-            const STORAGE_KEY = "luxury-clock-modern-settings";
 
             function clamp(n, min, max) {
                 n = Number(n);
                 if (!Number.isFinite(n)) return min;
                 return Math.max(min, Math.min(max, n));
+            }
+
+            function invalidateCache() {
+                isFaceCached = false;
             }
 
             function sanitizeSettings() {
@@ -1030,12 +909,7 @@
             function loadSettings() {
                 try {
                     const stored = localStorage.getItem(STORAGE_KEY);
-                    if (stored) {
-                        const parsed = JSON.parse(stored);
-                        settings = { ...defaultSettings, ...parsed };
-                    } else {
-                        settings = { ...defaultSettings };
-                    }
+                    if (stored) settings = { ...defaultSettings, ...JSON.parse(stored) };
                 } catch (e) {
                     settings = { ...defaultSettings };
                 }
@@ -1044,15 +918,13 @@
 
             function saveSettings() {
                 sanitizeSettings();
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-                } catch (e) { /* ignore */ }
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (e) {}
             }
 
             loadSettings();
 
             // ─────────────────────────────────────
-            // COLOR & THEME MANAGEMENT
+            // COLOR/THEME
             // ─────────────────────────────────────
             function hexToRgb(hex) {
                 const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -1076,6 +948,7 @@
                 document.documentElement.style.setProperty("--accent", settings.accentColor);
                 document.documentElement.style.setProperty("--accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
                 colorPicker.value = settings.accentColor;
+                invalidateCache();
             }
 
             function applyTickerVarsToDOM() {
@@ -1104,37 +977,46 @@
                     faceGradEnd: "#030608",
                     bezelLight: "#14242b",
                     bezelDark: "#030608",
-                    numeralColor: accent,
-                    tickColor: "#2a4a52",
                     hourHandColor: accent,
                     minuteHandColor: accent,
                     secondHandColor: accent,
                     centerCapColor: accent,
-                    centerCapDark: "#0a1a1c",
-                    shadowColor: "rgba(0,0,0,0.85)",
-                    glassHighlight: `rgba(255, 255, 255, 0.12)`
+                    centerCapDark: "#0a1a1c"
                 };
             }
 
             // ─────────────────────────────────────
-            // AUDIO ENGINE
+            // AUDIO
             // ─────────────────────────────────────
             let audioCtx = null;
+            let audioUnlocked = false;
             let lastSecondTick = -1;
             let lastSweepSubTick = -1;
 
-            function initAudio() {
+            function ensureAudioContextCreated() {
+                if (audioCtx) return true;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    return true;
+                } catch (e) {
+                    audioCtx = null;
+                    return false;
+                }
+            }
+
+            async function unlockAudioFromGesture() {
                 if (!settings.soundEnabled || !isAppVisible || isFrozen) return;
-                if (!audioCtx) {
-                    try {
-                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    } catch (e) {
-                        audioCtx = null;
+                if (audioUnlocked) {
+                    if (audioCtx && audioCtx.state === "suspended") {
+                        try { await audioCtx.resume(); } catch (e) {}
                     }
+                    return;
                 }
-                if (audioCtx && audioCtx.state === "suspended") {
-                    audioCtx.resume().catch(() => {});
-                }
+                if (!ensureAudioContextCreated()) return;
+                try {
+                    if (audioCtx.state === "suspended") await audioCtx.resume();
+                    audioUnlocked = true;
+                } catch (e) {}
             }
 
             function suspendAudio() {
@@ -1188,10 +1070,10 @@
                 const size = Math.min(containerWidth, containerHeight);
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 const internalSize = Math.floor(size * dpr);
-
                 if (canvas.width !== internalSize || canvas.height !== internalSize) {
                     canvas.width = internalSize;
                     canvas.height = internalSize;
+                    invalidateCache();
                 }
             }
 
@@ -1201,63 +1083,61 @@
                 const cx = w / 2;
                 const cy = h / 2;
                 const baseRadius = Math.min(w, h) * 0.44;
-                const sizeMult = settings.clockSize / 100;
-                const scaleMult = settings.userScale;
-                const radius = baseRadius * sizeMult * scaleMult;
+                const radius = baseRadius * (settings.clockSize / 100) * settings.userScale;
                 return { cx, cy, radius, w, h };
             }
 
             // ─────────────────────────────────────
-            // CANVAS DRAWING
+            // CLOCK DRAW
             // ─────────────────────────────────────
-            function drawClockFace(cx, cy, radius, colors) {
+            function drawClockFace(targetCtx, cx, cy, radius, colors) {
                 const shadowAlpha = settings.shadowIntensity / 100;
-                const shadowGrad = ctx.createRadialGradient(cx, cy + radius * 0.03, radius * 0.92, cx, cy + radius * 0.06, radius * 1.08);
+                const shadowGrad = targetCtx.createRadialGradient(cx, cy + radius * 0.03, radius * 0.92, cx, cy + radius * 0.06, radius * 1.08);
                 shadowGrad.addColorStop(0, "rgba(0,0,0,0)");
                 shadowGrad.addColorStop(0.7, `rgba(0,0,0,${0.15 * shadowAlpha})`);
                 shadowGrad.addColorStop(1, `rgba(0,0,0,${0.35 * shadowAlpha})`);
 
-                ctx.beginPath();
-                ctx.arc(cx, cy + radius * 0.02, radius * 1.08, 0, Math.PI * 2);
-                ctx.fillStyle = shadowGrad;
-                ctx.fill();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy + radius * 0.02, radius * 1.08, 0, Math.PI * 2);
+                targetCtx.fillStyle = shadowGrad;
+                targetCtx.fill();
 
-                const bezelGrad = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-                bezelGrad.addColorStop(0, colors.bezelLight);
-                bezelGrad.addColorStop(0.35, colors.bezelDark);
-                bezelGrad.addColorStop(0.65, colors.bezelDark);
-                bezelGrad.addColorStop(1, colors.bezelLight);
+                const bezelGrad = targetCtx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+                bezelGrad.addColorStop(0, "#14242b");
+                bezelGrad.addColorStop(0.35, "#030608");
+                bezelGrad.addColorStop(0.65, "#030608");
+                bezelGrad.addColorStop(1, "#14242b");
 
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius * 1.025, 0, Math.PI * 2);
-                ctx.fillStyle = bezelGrad;
-                ctx.fill();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, radius * 1.025, 0, Math.PI * 2);
+                targetCtx.fillStyle = bezelGrad;
+                targetCtx.fill();
 
-                const faceGrad = ctx.createRadialGradient(cx - radius * 0.15, cy - radius * 0.2, radius * 0.05, cx, cy, radius);
-                faceGrad.addColorStop(0, colors.faceGradStart);
-                faceGrad.addColorStop(1, colors.faceGradEnd);
+                const faceGrad = targetCtx.createRadialGradient(cx - radius * 0.15, cy - radius * 0.2, radius * 0.05, cx, cy, radius);
+                faceGrad.addColorStop(0, "#081014");
+                faceGrad.addColorStop(1, "#030608");
 
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                ctx.fillStyle = faceGrad;
-                ctx.fill();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+                targetCtx.fillStyle = faceGrad;
+                targetCtx.fill();
 
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius * 0.96, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(0,0,0,${0.2 * shadowAlpha})`;
-                ctx.lineWidth = radius * 0.008;
-                ctx.stroke();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, radius * 0.96, 0, Math.PI * 2);
+                targetCtx.strokeStyle = `rgba(0,0,0,${0.2 * shadowAlpha})`;
+                targetCtx.lineWidth = radius * 0.008;
+                targetCtx.stroke();
 
-                const innerShadow = ctx.createRadialGradient(cx, cy, radius * 0.82, cx, cy, radius * 0.97);
+                const innerShadow = targetCtx.createRadialGradient(cx, cy, radius * 0.82, cx, cy, radius * 0.97);
                 innerShadow.addColorStop(0, "rgba(0,0,0,0)");
                 innerShadow.addColorStop(1, `rgba(0,0,0,${0.3 * shadowAlpha})`);
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius * 0.97, 0, Math.PI * 2);
-                ctx.fillStyle = innerShadow;
-                ctx.fill();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, radius * 0.97, 0, Math.PI * 2);
+                targetCtx.fillStyle = innerShadow;
+                targetCtx.fill();
             }
 
-            function drawTicksAndNumerals(cx, cy, radius) {
+            function drawTicksAndNumerals(targetCtx, cx, cy, radius) {
                 const alpha = settings.shadowIntensity / 100;
                 const rgbAccent = hexToRgb(settings.accentColor);
 
@@ -1268,25 +1148,21 @@
                     const tickEnd = radius * (isHour ? 0.94 : 0.93);
                     const tickWidth = isHour ? radius * 0.018 : radius * 0.006;
 
-                    const x1 = cx + Math.cos(angle) * tickStart;
-                    const y1 = cy + Math.sin(angle) * tickStart;
-                    const x2 = cx + Math.cos(angle) * tickEnd;
-                    const y2 = cy + Math.sin(angle) * tickEnd;
-
                     if (settings.showTicks || isHour) {
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
+                        const x1 = cx + Math.cos(angle) * tickStart;
+                        const y1 = cy + Math.sin(angle) * tickStart;
+                        const x2 = cx + Math.cos(angle) * tickEnd;
+                        const y2 = cy + Math.sin(angle) * tickEnd;
 
-                        if (isHour) {
-                            ctx.strokeStyle = `rgba(${rgbAccent.r}, ${rgbAccent.g}, ${rgbAccent.b}, ${0.9 * alpha})`;
-                        } else {
-                            ctx.strokeStyle = `rgba(42, 74, 82, ${0.6 * alpha})`;
-                        }
-
-                        ctx.lineWidth = tickWidth;
-                        ctx.lineCap = "round";
-                        ctx.stroke();
+                        targetCtx.beginPath();
+                        targetCtx.moveTo(x1, y1);
+                        targetCtx.lineTo(x2, y2);
+                        targetCtx.strokeStyle = isHour
+                            ? `rgba(${rgbAccent.r}, ${rgbAccent.g}, ${rgbAccent.b}, ${0.9 * alpha})`
+                            : `rgba(42, 74, 82, ${0.6 * alpha})`;
+                        targetCtx.lineWidth = tickWidth;
+                        targetCtx.lineCap = "round";
+                        targetCtx.stroke();
                     }
                 }
 
@@ -1294,8 +1170,8 @@
                 const romanMap = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
                 const fontBase = radius * 0.11;
 
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
+                targetCtx.textAlign = "center";
+                targetCtx.textBaseline = "middle";
 
                 for (let i = 1; i <= 12; i++) {
                     const angle = (i * 30 - 90) * Math.PI / 180;
@@ -1303,14 +1179,14 @@
                     const ny = cy + Math.sin(angle) * numeralRadius;
                     const label = settings.romanNumerals ? romanMap[i - 1] : i.toString();
 
-                    ctx.fillStyle = `rgba(${rgbAccent.r}, ${rgbAccent.g}, ${rgbAccent.b}, ${0.85 * alpha})`;
+                    targetCtx.fillStyle = `rgba(${rgbAccent.r}, ${rgbAccent.g}, ${rgbAccent.b}, ${0.85 * alpha})`;
                     const fontSize = settings.romanNumerals ? fontBase * 0.80 : fontBase;
-                    ctx.font = `500 ${fontSize}px "Inter", "Segoe UI", "Helvetica Neue", sans-serif`;
-                    ctx.fillText(label, nx, ny);
+                    targetCtx.font = `500 ${fontSize}px "Inter", "Segoe UI", "Helvetica Neue", sans-serif`;
+                    targetCtx.fillText(label, nx, ny);
                 }
             }
 
-            function drawHand(cx, cy, angle, length, baseWidth, tipWidth, color, shadowColor, radius, isSecondHand = false) {
+            function drawHand(targetCtx, cx, cy, angle, length, baseWidth, tipWidth, color, shadowColor, radius, isSecondHand = false) {
                 const w = baseWidth * (settings.handThickness / 100);
                 const tw = tipWidth * (settings.handThickness / 100);
                 const tipX = cx + Math.cos(angle) * length;
@@ -1330,17 +1206,17 @@
                     const sx = cx + Math.cos(angle + 0.04) * shadowDist;
                     const sy = cy + Math.sin(angle + 0.04) * shadowDist;
 
-                    ctx.beginPath();
-                    ctx.moveTo(sx - backOffsetX, sy - backOffsetY);
-                    ctx.lineTo(sx - baseOffsetX, sy - baseOffsetY);
-                    ctx.lineTo(tipX + tipOffsetX, tipY + tipOffsetY);
-                    ctx.lineTo(tipX - tipOffsetX, tipY - tipOffsetY);
-                    ctx.closePath();
-                    ctx.fillStyle = shadowColor;
-                    ctx.fill();
+                    targetCtx.beginPath();
+                    targetCtx.moveTo(sx - backOffsetX, sy - backOffsetY);
+                    targetCtx.lineTo(sx - baseOffsetX, sy - baseOffsetY);
+                    targetCtx.lineTo(tipX + tipOffsetX, tipY + tipOffsetY);
+                    targetCtx.lineTo(tipX - tipOffsetX, tipY - tipOffsetY);
+                    targetCtx.closePath();
+                    targetCtx.fillStyle = shadowColor;
+                    targetCtx.fill();
                 }
 
-                const grad = ctx.createLinearGradient(
+                const grad = targetCtx.createLinearGradient(
                     cx - Math.cos(angle) * length * 0.3,
                     cy - Math.sin(angle) * length * 0.3,
                     tipX, tipY
@@ -1351,41 +1227,36 @@
                 const backX = cx - Math.cos(angle) * backLength;
                 const backY = cy - Math.sin(angle) * backLength;
 
-                ctx.beginPath();
-                ctx.moveTo(backX - backOffsetX, backY - backOffsetY);
-                ctx.lineTo(cx - baseOffsetX, cy - baseOffsetY);
-                ctx.lineTo(tipX - tipOffsetX, tipY - tipOffsetY);
-                ctx.lineTo(tipX + tipOffsetX, tipY + tipOffsetY);
-                ctx.lineTo(cx + baseOffsetX, cy + baseOffsetY);
-                ctx.lineTo(backX + backOffsetX, backY + backOffsetY);
-                ctx.closePath();
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                if (!isSecondHand) {
-                    const hlGrad = ctx.createLinearGradient(cx - baseOffsetX, cy - baseOffsetY, cx + baseOffsetX, cy + baseOffsetY);
-                    hlGrad.addColorStop(0, "rgba(255,255,255,0.15)");
-                    hlGrad.addColorStop(0.5, "rgba(255,255,255,0.03)");
-                    hlGrad.addColorStop(1, "rgba(0,0,0,0.15)");
-
-                    ctx.beginPath();
-                    ctx.moveTo(backX - backOffsetX * 0.7, backY - backOffsetY * 0.7);
-                    ctx.lineTo(cx - baseOffsetX * 0.9, cy - baseOffsetY * 0.9);
-                    ctx.lineTo(tipX - tipOffsetX * 0.8, tipY - tipOffsetY * 0.8);
-                    ctx.lineTo(tipX + tipOffsetX * 0.3, tipY + tipOffsetY * 0.3);
-                    ctx.lineTo(cx + baseOffsetX * 0.4, cy + baseOffsetY * 0.4);
-                    ctx.lineTo(backX + backOffsetX * 0.3, backY + backOffsetY * 0.3);
-                    ctx.closePath();
-                    ctx.fillStyle = hlGrad;
-                    ctx.fill();
-                }
+                targetCtx.beginPath();
+                targetCtx.moveTo(backX - backOffsetX, backY - backOffsetY);
+                targetCtx.lineTo(cx - baseOffsetX, cy - baseOffsetY);
+                targetCtx.lineTo(tipX - tipOffsetX, tipY - tipOffsetY);
+                targetCtx.lineTo(tipX + tipOffsetX, tipY + tipOffsetY);
+                targetCtx.lineTo(cx + baseOffsetX, cy + baseOffsetY);
+                targetCtx.lineTo(backX + backOffsetX, backY + backOffsetY);
+                targetCtx.closePath();
+                targetCtx.fillStyle = grad;
+                targetCtx.fill();
             }
 
-            function drawGlassReflection(cx, cy, radius) {
+            function drawCenterCap(targetCtx, cx, cy, radius, colors) {
+                const capR = radius * 0.06;
+                const capGrad = targetCtx.createRadialGradient(cx - capR * 0.3, cy - capR * 0.35, capR * 0.05, cx, cy, capR);
+                capGrad.addColorStop(0, colors.centerCapColor);
+                capGrad.addColorStop(0.6, colors.centerCapDark);
+                capGrad.addColorStop(1, "#020405");
+
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, capR, 0, Math.PI * 2);
+                targetCtx.fillStyle = capGrad;
+                targetCtx.fill();
+            }
+
+            function drawGlassReflection(targetCtx, cx, cy, radius) {
                 const intensity = settings.reflectionIntensity / 100;
                 if (intensity < 0.01) return;
 
-                const grad = ctx.createRadialGradient(
+                const grad = targetCtx.createRadialGradient(
                     cx - radius * 0.3, cy - radius * 0.35, radius * 0.08,
                     cx - radius * 0.05, cy - radius * 0.05, radius * 1.3
                 );
@@ -1393,45 +1264,10 @@
                 grad.addColorStop(0.25, `rgba(255,255,255,${0.08 * intensity})`);
                 grad.addColorStop(0.55, "rgba(255,255,255,0)");
 
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius * 0.99, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                const streakGrad = ctx.createLinearGradient(cx - radius * 0.7, cy - radius * 0.9, cx + radius * 0.5, cy + radius * 0.7);
-                streakGrad.addColorStop(0, "rgba(255,255,255,0)");
-                streakGrad.addColorStop(0.35, `rgba(255,255,255,${0.08 * intensity})`);
-                streakGrad.addColorStop(0.5, `rgba(255,255,255,${0.1 * intensity})`);
-                streakGrad.addColorStop(0.65, `rgba(255,255,255,${0.04 * intensity})`);
-                streakGrad.addColorStop(1, "rgba(255,255,255,0)");
-
-                ctx.beginPath();
-                ctx.arc(cx, cy, radius * 0.98, 0, Math.PI * 2);
-                ctx.fillStyle = streakGrad;
-                ctx.fill();
-            }
-
-            function drawCenterCap(cx, cy, radius, colors) {
-                const capR = radius * 0.06;
-                const capGrad = ctx.createRadialGradient(cx - capR * 0.3, cy - capR * 0.35, capR * 0.05, cx, cy, capR);
-                capGrad.addColorStop(0, colors.centerCapColor);
-                capGrad.addColorStop(0.6, colors.centerCapDark);
-                capGrad.addColorStop(1, "#020405");
-
-                ctx.beginPath();
-                ctx.arc(cx, cy, capR, 0, Math.PI * 2);
-                ctx.fillStyle = capGrad;
-                ctx.fill();
-
-                const hlGrad = ctx.createRadialGradient(cx - capR * 0.25, cy - capR * 0.3, capR * 0.02, cx, cy, capR * 0.8);
-                hlGrad.addColorStop(0, "rgba(255,255,255,0.6)");
-                hlGrad.addColorStop(0.5, "rgba(255,255,255,0.1)");
-                hlGrad.addColorStop(1, "rgba(0,0,0,0.4)");
-
-                ctx.beginPath();
-                ctx.arc(cx, cy, capR * 0.85, 0, Math.PI * 2);
-                ctx.fillStyle = hlGrad;
-                ctx.fill();
+                targetCtx.beginPath();
+                targetCtx.arc(cx, cy, radius * 0.99, 0, Math.PI * 2);
+                targetCtx.fillStyle = grad;
+                targetCtx.fill();
             }
 
             function formatTime(date) {
@@ -1441,7 +1277,6 @@
                 return `${h}:${m}:${s}`;
             }
 
-            // Calibration Animation State
             let isCalibrating = true;
             let calibrationStartTime = performance.now();
             const calibrationDuration = 1600;
@@ -1449,8 +1284,7 @@
 
             function renderClock() {
                 const { cx, cy, radius: r, w, h } = getClockMetrics();
-                ctx.clearRect(0, 0, w, h);
-
+                
                 const colors = getCanvasTheme();
                 const date = new Date();
                 const hours = date.getHours();
@@ -1479,44 +1313,41 @@
                     const extraRotations = 1.5 * (1 - eased);
                     secondAngle = targetSecondAngle - extraRotations * Math.PI * 2 + calibrationStartOffset * (1 - eased);
 
-                    const settleOffset = 0.06 * (1 - eased) * Math.sin(progress * Math.PI * 3);
-                    hourAngle += settleOffset;
-                    minuteAngle -= settleOffset * 0.7;
-
                     if (progress >= 1) {
                         isCalibrating = false;
                         canvasContainer.classList.remove("calibrating");
                     }
                 }
 
+                // Caching strategy for performance
+                if (!isFaceCached || offscreenCanvas.width !== w || offscreenCanvas.height !== h) {
+                    offscreenCanvas.width = w;
+                    offscreenCanvas.height = h;
+                    offscreenCtx.clearRect(0, 0, w, h);
+                    drawClockFace(offscreenCtx, cx, cy, r, colors);
+                    drawTicksAndNumerals(offscreenCtx, cx, cy, r);
+                    isFaceCached = true;
+                }
+
+                // Render main canvas
+                ctx.clearRect(0, 0, w, h);
+                ctx.drawImage(offscreenCanvas, 0, 0); // Paint cached static bg
+
                 const shadowCol = `rgba(0,0,0,${0.6 * (settings.shadowIntensity / 100)})`;
 
-                drawClockFace(cx, cy, r, colors);
-                drawTicksAndNumerals(cx, cy, r);
+                drawHand(ctx, cx, cy, hourAngle, r * 0.54, r * 0.044, r * 0.018, colors.hourHandColor, shadowCol, r, false);
+                drawHand(ctx, cx, cy, minuteAngle, r * 0.76, r * 0.034, r * 0.013, colors.minuteHandColor, shadowCol, r, false);
+                drawHand(ctx, cx, cy, secondAngle, r * 0.82, r * 0.012, r * 0.005, colors.secondHandColor, shadowCol, r, true);
 
-                const hrLen = r * 0.54;
-                const minLen = r * 0.76;
-                const secLen = r * 0.82;
-                const hrBaseW = r * 0.044;
-                const hrTipW = r * 0.018;
-                const minBaseW = r * 0.034;
-                const minTipW = r * 0.013;
-                const secBaseW = r * 0.012;
-                const secTipW = r * 0.005;
-
-                drawHand(cx, cy, hourAngle, hrLen, hrBaseW, hrTipW, colors.hourHandColor, shadowCol, r, false);
-                drawHand(cx, cy, minuteAngle, minLen, minBaseW, minTipW, colors.minuteHandColor, shadowCol, r, false);
-                drawHand(cx, cy, secondAngle, secLen, secBaseW, secTipW, colors.secondHandColor, shadowCol, r, true);
-
-                drawCenterCap(cx, cy, r, colors);
-                drawGlassReflection(cx, cy, r);
+                drawCenterCap(ctx, cx, cy, r, colors);
+                drawGlassReflection(ctx, cx, cy, r);
 
                 const timeStr = formatTime(date);
                 if (timeDisplay.textContent !== timeStr) timeDisplay.textContent = timeStr;
             }
 
             // ─────────────────────────────────────
-            // MAIN ANIMATION LOOP
+            // MAIN LOOP
             // ─────────────────────────────────────
             let animationFrameId = 0;
             let renderLoopRunning = false;
@@ -1561,7 +1392,7 @@
             }
 
             // ─────────────────────────────────────
-            // NETWORK HELPERS (throttled / backoff)
+            // NETWORK HELPERS
             // ─────────────────────────────────────
             function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -1570,7 +1401,7 @@
                 const controller = new AbortController();
                 const id = setTimeout(() => controller.abort(), timeoutMs);
                 try {
-                    const res = await fetch(url, {
+                    return await fetch(url, {
                         method: "GET",
                         cache: "no-store",
                         credentials: "omit",
@@ -1578,7 +1409,6 @@
                         redirect: "follow",
                         signal: controller.signal
                     });
-                    return res;
                 } finally {
                     clearTimeout(id);
                 }
@@ -1590,54 +1420,46 @@
                 return base + encodeURIComponent(originalUrl);
             }
 
-            function shouldProxyFirst() {
-                // Если страница открыта как file://, "direct fetch" почти всегда будет CORS-error и будет спамить консоль.
-                const isFile = location.protocol === "file:";
-                // some engines expose opaque origin as "null" in logs; not always accessible via location.origin
-                return settings.corsProxyEnabled && isFile;
-            }
-
-            async function fetchTextSmart(url, { timeoutMs = 9000 } = {}) {
+            async function fetchTextSmart(url, { timeoutMs = 9000, preferProxy = false } = {}) {
                 if (!isAppVisible || isFrozen) throw new Error("Hidden/Frozen: network disabled");
                 if (!navigator.onLine) throw new Error("Offline");
 
                 const proxyUrl = settings.corsProxyEnabled ? buildProxyUrl(url) : "";
-                const proxyFirst = shouldProxyFirst() && !!proxyUrl;
 
-                if (proxyFirst) {
-                    // Proxy-first: avoids noisy CORS errors in console for file://
-                    try {
-                        const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
-                        if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
-                        return await resP.text();
-                    } catch (e) {
-                        // Try direct as fallback
-                        const resD = await fetchWithTimeout(url, { timeoutMs });
-                        if (!resD.ok) throw new Error("HTTP " + resD.status);
-                        return await resD.text();
-                    }
-                } else {
-                    // Direct-first
-                    try {
-                        const resD = await fetchWithTimeout(url, { timeoutMs });
-                        if (!resD.ok) throw new Error("HTTP " + resD.status);
-                        return await resD.text();
-                    } catch (e) {
-                        if (!proxyUrl) throw e;
-                        const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
-                        if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
-                        return await resP.text();
-                    }
+                if (preferProxy && proxyUrl) {
+                    const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
+                    if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
+                    return await resP.text();
+                }
+
+                try {
+                    const resD = await fetchWithTimeout(url, { timeoutMs });
+                    if (!resD.ok) throw new Error("HTTP " + resD.status);
+                    return await resD.text();
+                } catch (e) {
+                    if (!proxyUrl) throw e;
+                    const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
+                    if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
+                    return await resP.text();
                 }
             }
 
             async function fetchJsonSmart(url, { timeoutMs = 9000 } = {}) {
                 const txt = await fetchTextSmart(url, { timeoutMs });
-                return JSON.parse(txt);
+                // Some proxies wrap json in { contents: "..." }
+                try {
+                    const proxyData = JSON.parse(txt);
+                    if (proxyData && proxyData.contents) {
+                        try { return JSON.parse(proxyData.contents); } catch (e) {}
+                    }
+                    return proxyData;
+                } catch (e) {
+                    throw new Error("Invalid JSON");
+                }
             }
 
             // ─────────────────────────────────────
-            // TICKER ENGINE (robust: never "dies")
+            // TICKER ENGINE (ROBUST)
             // ─────────────────────────────────────
             function escapeHTML(str) {
                 return String(str)
@@ -1649,7 +1471,6 @@
             }
 
             function restartCssAnimation(el) {
-                // Some engines can "stick" after variable updates; force restart.
                 if (typeof el.getAnimations === "function") {
                     const anims = el.getAnimations();
                     for (const a of anims) {
@@ -1658,7 +1479,7 @@
                     return;
                 }
                 el.style.animation = "none";
-                void el.offsetHeight; // force reflow
+                void el.offsetHeight;
                 el.style.animation = "";
             }
 
@@ -1667,13 +1488,11 @@
                     ? html
                     : `<span class="ticker__item"><span class="ticker__sym">INFO</span><span class="ticker__price">—</span><span class="ticker__chg flat">(—)</span></span>`;
 
-                // Store last non-empty html (for recompute on resize/font-load)
                 tickerEl.dataset.html = safeHtml;
 
                 aEl.innerHTML = safeHtml;
                 bEl.innerHTML = safeHtml;
 
-                // Defer measurement to next frame to ensure layout is committed
                 requestAnimationFrame(() => {
                     const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
                     if (reduceMotion) {
@@ -1682,20 +1501,20 @@
                         trackEl.style.removeProperty("--ticker-duration");
                         return;
                     }
-
-                    // If ticker is hidden, width measurements will be 0; keep defaults, will recompute on unhide.
                     if (tickerEl.hidden) return;
 
-                    const distanceRaw = aEl.scrollWidth;
-                    const distance = Number.isFinite(distanceRaw) && distanceRaw > 0 ? distanceRaw : 1200;
-
+                    // FIX DOM EXPLOSION: Ensure baseWidth is never too small when hidden
+                    const baseWidthRaw = aEl.scrollWidth;
+                    const baseWidth = Number.isFinite(baseWidthRaw) && baseWidthRaw > 20 ? baseWidthRaw : 600;
+                    const viewportWidth = tickerEl.clientWidth || window.innerWidth || 1200;
+                    
+                    const distance = baseWidth;
                     const speed = clamp(speedPxPerSec, 20, 600);
                     const durationSec = clamp(distance / speed, 8, 240);
 
                     trackEl.style.setProperty("--ticker-distance", distance + "px");
                     trackEl.style.setProperty("--ticker-duration", durationSec.toFixed(2) + "s");
 
-                    // Ensure it keeps running
                     tickerEl.classList.remove("paused");
                     restartCssAnimation(trackEl);
                 });
@@ -1703,12 +1522,10 @@
 
             function recomputeTickerAnimations() {
                 if (settings.marketTickerEnabled && !marketTicker.hidden) {
-                    const html = marketTicker.dataset.html || marketTickerA.innerHTML || "";
-                    setTickerContent(marketTicker, marketTickerTrack, marketTickerA, marketTickerB, html, settings.marketSpeed);
+                    setTickerContent(marketTicker, marketTickerTrack, marketTickerA, marketTickerB, marketTicker.dataset.html || marketTickerA.innerHTML || "", settings.marketSpeed);
                 }
                 if (settings.rssTickerEnabled && !rssTicker.hidden) {
-                    const html = rssTicker.dataset.html || rssTickerA.innerHTML || "";
-                    setTickerContent(rssTicker, rssTickerTrack, rssTickerA, rssTickerB, html, settings.rssSpeed);
+                    setTickerContent(rssTicker, rssTickerTrack, rssTickerA, rssTickerB, rssTicker.dataset.html || rssTickerA.innerHTML || "", settings.rssSpeed);
                 }
             }
 
@@ -1722,27 +1539,27 @@
                 if (!isAppVisible || isFrozen || reduceMotion) return;
                 marketTicker.classList.remove("paused");
                 rssTicker.classList.remove("paused");
-                // also kick animations
                 restartCssAnimation(marketTickerTrack);
                 restartCssAnimation(rssTickerTrack);
             }
 
-            // ─────────────────────────────────────
-            // MARKET TICKER (CoinGecko + optional Stooq)
-            // ─────────────────────────────────────
-            const marketState = {
-                timer: 0,
-                backoffMs: 0,
-                lastItems: [],
-                inFlight: false
-            };
+            function computeRepeatCount(baseWidth, viewportWidth) {
+                const safeBase = Number.isFinite(baseWidth) && baseWidth > 20 ? baseWidth : 600;
+                const target = viewportWidth * 2;
+                return clamp(Math.ceil(target / safeBase), 2, 20);
+            }
 
-            const stooqSymbols = {
-                OIL: { symbol: "cl.f", label: "WTI" },
-                GOLD: { symbol: "xauusd", label: "Gold" },
-                SILVER: { symbol: "xagusd", label: "Silver" },
-                SP500: { symbol: "^spx", label: "S&P 500" }
-            };
+            // ─────────────────────────────────────
+            // MARKET TICKER (CoinGecko + Yahoo Finance)
+            // ─────────────────────────────────────
+            const marketState = { timer: 0, backoffMs: 0, lastItems: [], inFlight: false };
+
+            const bonusSymbols = [
+                { symbol: "CL=F", label: "WTI Crude" },
+                { symbol: "GC=F", label: "Gold" },
+                { symbol: "SI=F", label: "Silver" },
+                { symbol: "^GSPC", label: "S&P 500" }
+            ];
 
             function formatCurrency(value, currency) {
                 if (!Number.isFinite(value)) return "N/A";
@@ -1765,7 +1582,7 @@
 
             function buildMarketHTML(items, repeatCount) {
                 const parts = [];
-                const rep = clamp(repeatCount, 1, 12);
+                const rep = clamp(repeatCount, 1, 20);
                 for (let r = 0; r < rep; r++) {
                     for (const it of items) {
                         const sym = escapeHTML(it.symbol || it.label || "");
@@ -1802,61 +1619,52 @@
                 };
             }
 
-            function parseCsvLines(csvText) {
-                const lines = String(csvText).trim().split(/\r?\n/).filter(Boolean);
-                if (lines.length < 2) return [];
-                return lines.slice(1).map(line => line.split(","));
-            }
-
-            async function fetchStooqDailyChange(symbol) {
+            async function fetchYahooDailyChange(symbol) {
                 const s = encodeURIComponent(symbol);
-                const url = `https://stooq.com/q/d/l/?s=${s}&i=d`;
-                const csv = await fetchTextSmart(url, { timeoutMs: 12000 });
-                const rows = parseCsvLines(csv);
-                if (rows.length < 2) throw new Error("Stooq: not enough rows");
-                const last = rows[rows.length - 1];
-                const prev = rows[rows.length - 2];
-                const lastClose = Number(last[4]);
-                const prevClose = Number(prev[4]);
-                if (!Number.isFinite(lastClose) || !Number.isFinite(prevClose) || prevClose === 0) throw new Error("Stooq: bad close");
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=2d`;
+                const proxyUrl = settings.corsProxyEnabled ? buildProxyUrl(url) : url;
+                
+                const res = await fetchWithTimeout(proxyUrl, { timeoutMs: 12000 });
+                const txt = await res.text();
+                
+                let dataText = txt;
+                try {
+                    const proxyData = JSON.parse(txt);
+                    if (proxyData.contents) dataText = proxyData.contents;
+                } catch(e) {}
+                
+                const json = JSON.parse(dataText);
+                const result = json.chart.result[0];
+                const closes = result.indicators.quote[0].close.filter(c => c !== null);
+                if (closes.length < 2) throw new Error("Yahoo: not enough data");
+                
+                const lastClose = closes[closes.length - 1];
+                const prevClose = closes[closes.length - 2];
                 const pct = ((lastClose - prevClose) / prevClose) * 100;
                 return { price: lastClose, changePct: pct };
             }
 
-            function computeRepeatCount(baseWidth, viewportWidth) {
-                if (!Number.isFinite(baseWidth) || baseWidth <= 0) return 6;
-                const target = viewportWidth * 2;
-                return clamp(Math.ceil(target / baseWidth), 2, 12);
-            }
-
             async function refreshMarketTicker() {
-                if (!settings.marketTickerEnabled) return;
-                if (!isAppVisible || isFrozen) return;
-                if (marketState.inFlight) return;
-
+                if (!settings.marketTickerEnabled || !isAppVisible || isFrozen || marketState.inFlight) return;
                 marketState.inFlight = true;
 
                 try {
-                    const cryptoId = settings.marketCryptoId;
-                    const vsCurrency = settings.marketVsCurrency;
-
                     const items = [];
 
-                    const c = await fetchCoinGecko(cryptoId, vsCurrency);
+                    const c = await fetchCoinGecko(settings.marketCryptoId, settings.marketVsCurrency);
                     const changeClass = Number.isFinite(c.changePct) ? (c.changePct > 0 ? "up" : (c.changePct < 0 ? "down" : "flat")) : "flat";
                     items.push({
                         label: c.label,
                         symbol: c.symbol,
-                        priceText: formatCurrency(c.price, vsCurrency),
+                        priceText: formatCurrency(c.price, settings.marketVsCurrency),
                         changeText: formatPct(c.changePct) + " 24h",
                         changeClass
                     });
 
                     if (settings.bonusAssetsEnabled) {
-                        const bonusList = [stooqSymbols.OIL, stooqSymbols.GOLD, stooqSymbols.SILVER, stooqSymbols.SP500];
-                        for (const b of bonusList) {
+                        for (const b of bonusSymbols) {
                             try {
-                                const v = await fetchStooqDailyChange(b.symbol);
+                                const v = await fetchYahooDailyChange(b.symbol);
                                 const cls = v.changePct > 0 ? "up" : (v.changePct < 0 ? "down" : "flat");
                                 items.push({
                                     label: b.label,
@@ -1866,26 +1674,18 @@
                                         : "N/A",
                                     changeText: formatPct(v.changePct) + " 1D",
                                     changeClass: cls,
-                                    meta: "Stooq"
+                                    meta: "YF"
                                 });
                             } catch {
-                                items.push({
-                                    label: b.label,
-                                    symbol: b.label,
-                                    priceText: "N/A",
-                                    changeText: "—",
-                                    changeClass: "flat",
-                                    meta: "Stooq"
-                                });
+                                items.push({ label: b.label, symbol: b.label, priceText: "N/A", changeText: "—", changeClass: "flat", meta: "YF" });
                             }
-                            await sleep(120);
+                            await sleep(150); // Be gentle with proxy
                         }
                     }
 
-                    // Build base -> measure -> repeat enough
                     const baseHtml = buildMarketHTML(items, 1);
                     marketTickerA.innerHTML = baseHtml;
-                    const baseWidth = marketTickerA.scrollWidth || 1;
+                    const baseWidth = marketTickerA.scrollWidth || 100;
                     const viewportWidth = marketTicker.clientWidth || window.innerWidth || 1200;
                     const repeatCount = computeRepeatCount(baseWidth, viewportWidth);
 
@@ -1896,12 +1696,10 @@
                     marketState.lastItems = items;
                 } catch (e) {
                     marketState.backoffMs = marketState.backoffMs ? Math.min(marketState.backoffMs * 2, 10 * 60 * 1000) : 60 * 1000;
-
                     if (!marketState.lastItems.length) {
-                        const html = `<span class="ticker__item"><span class="ticker__sym">MARKET</span><span class="ticker__price">No data</span><span class="ticker__chg flat">(N/A)</span><span class="ticker__meta">backoff</span></span>`;
+                        const html = `<span class="ticker__item"><span class="ticker__sym">MARKET</span><span class="ticker__price">No data</span><span class="ticker__chg flat">(backoff)</span></span>`;
                         setTickerContent(marketTicker, marketTickerTrack, marketTickerA, marketTickerB, html, settings.marketSpeed);
                     } else {
-                        // keep last good content, just ensure animation alive
                         recomputeTickerAnimations();
                     }
                 } finally {
@@ -1911,12 +1709,11 @@
 
             function scheduleMarketLoop(immediate = false) {
                 clearTimeout(marketState.timer);
-                if (!settings.marketTickerEnabled) return;
-                if (!isAppVisible || isFrozen) return;
+                if (!settings.marketTickerEnabled || !isAppVisible || isFrozen) return;
 
                 const saveData = navigator.connection && navigator.connection.saveData;
                 const baseMs = clamp(settings.marketRefreshSec, 60, 1800) * 1000;
-                const intervalMs = saveData ? Math.max(baseMs, 300_000) : baseMs;
+                const intervalMs = saveData ? Math.max(baseMs, 300000) : baseMs;
 
                 const delay = immediate ? 50 : (marketState.backoffMs || intervalMs);
                 marketState.timer = setTimeout(async () => {
@@ -1932,14 +1729,9 @@
             }
 
             // ─────────────────────────────────────
-            // RSS TICKER (RSS/Atom XML parsing)
+            // RSS TICKER (proxy-first to avoid CORS)
             // ─────────────────────────────────────
-            const rssState = {
-                timer: 0,
-                backoffMs: 0,
-                inFlight: false,
-                lastTitles: []
-            };
+            const rssState = { timer: 0, backoffMs: 0, inFlight: false, lastTitles: [] };
 
             function normalizeUrl(u) {
                 const url = new URL(u);
@@ -1950,8 +1742,7 @@
             function parseFeed(xmlText) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(xmlText, "text/xml");
-                const parseError = doc.querySelector("parsererror");
-                if (parseError) throw new Error("XML parse error");
+                if (doc.querySelector("parsererror")) throw new Error("XML parse error");
 
                 const items = Array.from(doc.querySelectorAll("rss channel item, channel item"));
                 if (items.length) {
@@ -1982,7 +1773,7 @@
 
             function buildRssHTML(items, repeatCount) {
                 const parts = [];
-                const rep = clamp(repeatCount, 1, 12);
+                const rep = clamp(repeatCount, 1, 20);
                 for (let r = 0; r < rep; r++) {
                     for (const it of items) {
                         const title = escapeHTML(it.title || "");
@@ -1997,10 +1788,7 @@
             }
 
             async function refreshRssTicker() {
-                if (!settings.rssTickerEnabled) return;
-                if (!isAppVisible || isFrozen) return;
-                if (rssState.inFlight) return;
-
+                if (!settings.rssTickerEnabled || !isAppVisible || isFrozen || rssState.inFlight) return;
                 rssState.inFlight = true;
 
                 try {
@@ -2014,16 +1802,14 @@
                     }
 
                     const all = [];
-
-                    // sequential fetch: avoids burst / ban risk
                     for (const src of sources) {
                         if (!isAppVisible || isFrozen) break;
                         try {
-                            const xml = await fetchTextSmart(src, { timeoutMs: 12000 });
+                            const xml = await fetchTextSmart(src, { timeoutMs: 12000, preferProxy: true });
                             const parsed = parseFeed(xml).slice(0, 12);
                             for (const it of parsed) all.push(it);
                         } catch {
-                            // ignore this source
+                            // skip broken feed silently
                         }
                         await sleep(140);
                     }
@@ -2041,10 +1827,8 @@
                     const finalItems = uniq.slice(0, 50);
 
                     if (!finalItems.length) {
-                        const html = `<span class="ticker__item"><span class="ticker__sym">RSS</span><span class="ticker__price">No items</span><span class="ticker__chg flat">(CORS/proxy?)</span></span>`;
-                        // repeat a bit to guarantee visible scrolling distance
-                        const repeated = buildRssHTML([{ title: "No items (check proxy / sources)", link: "" }], 8);
-                        setTickerContent(rssTicker, rssTickerTrack, rssTickerA, rssTickerB, repeated || html, settings.rssSpeed);
+                        const repeated = buildRssHTML([{ title: "No items (check proxy / sources)", link: "" }], 10);
+                        setTickerContent(rssTicker, rssTickerTrack, rssTickerA, rssTickerB, repeated, settings.rssSpeed);
                         rssState.lastTitles = [];
                         rssState.backoffMs = 0;
                         return;
@@ -2052,7 +1836,7 @@
 
                     const baseHtml = buildRssHTML(finalItems, 1);
                     rssTickerA.innerHTML = baseHtml;
-                    const baseWidth = rssTickerA.scrollWidth || 1;
+                    const baseWidth = rssTickerA.scrollWidth || 100;
                     const viewportWidth = rssTicker.clientWidth || window.innerWidth || 1200;
                     const repeatCount = computeRepeatCount(baseWidth, viewportWidth);
 
@@ -2063,7 +1847,6 @@
                     rssState.lastTitles = finalItems.map(x => x.title).slice(0, 10);
                 } catch (e) {
                     rssState.backoffMs = rssState.backoffMs ? Math.min(rssState.backoffMs * 2, 20 * 60 * 1000) : 2 * 60 * 1000;
-
                     if (!rssState.lastTitles.length) {
                         const html = `<span class="ticker__item"><span class="ticker__sym">RSS</span><span class="ticker__price">No data</span><span class="ticker__chg flat">(backoff)</span></span>`;
                         setTickerContent(rssTicker, rssTickerTrack, rssTickerA, rssTickerB, html, settings.rssSpeed);
@@ -2077,12 +1860,11 @@
 
             function scheduleRssLoop(immediate = false) {
                 clearTimeout(rssState.timer);
-                if (!settings.rssTickerEnabled) return;
-                if (!isAppVisible || isFrozen) return;
+                if (!settings.rssTickerEnabled || !isAppVisible || isFrozen) return;
 
                 const saveData = navigator.connection && navigator.connection.saveData;
                 const baseMs = clamp(settings.rssRefreshSec, 300, 7200) * 1000;
-                const intervalMs = saveData ? Math.max(baseMs, 1_800_000) : baseMs;
+                const intervalMs = saveData ? Math.max(baseMs, 1800000) : baseMs;
 
                 const delay = immediate ? 100 : (rssState.backoffMs || intervalMs);
                 rssState.timer = setTimeout(async () => {
@@ -2098,7 +1880,7 @@
             }
 
             // ─────────────────────────────────────
-            // UI CONTROLLER
+            // UI
             // ─────────────────────────────────────
             let settingsOpen = false;
             let inactivityTimeout = 0;
@@ -2142,19 +1924,13 @@
             function toggleFullscreen() {
                 if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                     const el = document.documentElement;
-                    if (el.requestFullscreen) {
-                        el.requestFullscreen().catch(() => {});
-                    } else if (el.webkitRequestFullscreen) {
-                        el.webkitRequestFullscreen();
-                    }
+                    if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+                    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
                     focusMode = true;
                     body.classList.add("focus-mode");
                 } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen().catch(() => {});
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    }
+                    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                     focusMode = false;
                     body.classList.remove("focus-mode");
                     resetInactivityTimer();
@@ -2198,63 +1974,47 @@
             }
 
             function updateUIStates() {
-                // Sound button
                 btnSound.querySelector("span").textContent = settings.soundEnabled ? "🔊" : "🔇";
                 btnSound.classList.toggle("active", !!settings.soundEnabled);
 
-                // Mode button
                 btnMode.querySelector("span").textContent = settings.sweepMode ? "◎" : "⏲";
                 btnMode.classList.toggle("active", !!settings.sweepMode);
 
-                // Toggles (clock)
                 document.getElementById("toggleSweep").classList.toggle("on", !!settings.sweepMode);
                 document.getElementById("toggleSound").classList.toggle("on", !!settings.soundEnabled);
                 document.getElementById("toggleRoman").classList.toggle("on", !!settings.romanNumerals);
                 document.getElementById("toggleTicks").classList.toggle("on", !!settings.showTicks);
 
-                // Sliders (clock)
                 document.getElementById("sizeSlider").value = settings.clockSize;
                 document.getElementById("sizeVal").textContent = settings.clockSize + "%";
-
                 document.getElementById("thicknessSlider").value = settings.handThickness;
                 document.getElementById("thicknessVal").textContent = settings.handThickness + "%";
-
                 document.getElementById("shadowSlider").value = settings.shadowIntensity;
                 document.getElementById("shadowVal").textContent = settings.shadowIntensity + "%";
-
                 document.getElementById("reflectionSlider").value = settings.reflectionIntensity;
                 document.getElementById("reflectionVal").textContent = settings.reflectionIntensity + "%";
-
                 document.getElementById("volumeSlider").value = settings.soundVolume;
                 document.getElementById("volumeVal").textContent = settings.soundVolume + "%";
 
-                // Ticker toggles
                 toggleMarketTicker.classList.toggle("on", !!settings.marketTickerEnabled);
                 toggleRssTicker.classList.toggle("on", !!settings.rssTickerEnabled);
                 toggleBonusAssets.classList.toggle("on", !!settings.bonusAssetsEnabled);
 
-                // Proxy
                 toggleProxy.classList.toggle("on", !!settings.corsProxyEnabled);
-                proxyBaseInput.value = (settings.corsProxyBase || "").trim();
+                proxyBaseInput.value = settings.corsProxyBase || "";
 
-                // Ticker sliders
                 tickerScaleSlider.value = settings.tickerScale;
                 tickerScaleVal.textContent = settings.tickerScale + "%";
-
                 marketSpeedSlider.value = settings.marketSpeed;
                 marketSpeedVal.textContent = String(settings.marketSpeed);
-
                 rssSpeedSlider.value = settings.rssSpeed;
                 rssSpeedVal.textContent = String(settings.rssSpeed);
 
-                // Market selections
                 cryptoSelect.value = settings.marketCryptoId;
                 vsCurrencySelect.value = settings.marketVsCurrency;
 
-                // Refresh intervals
                 marketRefreshSlider.value = settings.marketRefreshSec;
                 marketRefreshVal.textContent = settings.marketRefreshSec + "s";
-
                 rssRefreshSlider.value = settings.rssRefreshSec;
                 rssRefreshVal.textContent = settings.rssRefreshSec + "s";
 
@@ -2263,16 +2023,16 @@
             }
 
             // ─────────────────────────────────────
-            // EVENT LISTENERS
+            // EVENTS
             // ─────────────────────────────────────
             btnSettings.addEventListener("click", toggleSettings);
             btnFullscreen.addEventListener("click", toggleFullscreen);
 
-            btnSound.addEventListener("click", () => {
+            btnSound.addEventListener("click", async () => {
                 settings.soundEnabled = !settings.soundEnabled;
                 saveSettings();
                 updateUIStates();
-                if (settings.soundEnabled) initAudio();
+                await unlockAudioFromGesture();
             });
 
             btnMode.addEventListener("click", () => {
@@ -2306,21 +2066,23 @@
                 updateUIStates();
             });
 
-            document.getElementById("toggleSound").addEventListener("click", () => {
+            document.getElementById("toggleSound").addEventListener("click", async () => {
                 settings.soundEnabled = !settings.soundEnabled;
                 saveSettings();
                 updateUIStates();
-                if (settings.soundEnabled) initAudio();
+                await unlockAudioFromGesture();
             });
 
             document.getElementById("toggleRoman").addEventListener("click", () => {
                 settings.romanNumerals = !settings.romanNumerals;
+                invalidateCache();
                 saveSettings();
                 updateUIStates();
             });
 
             document.getElementById("toggleTicks").addEventListener("click", () => {
                 settings.showTicks = !settings.showTicks;
+                invalidateCache();
                 saveSettings();
                 updateUIStates();
             });
@@ -2328,24 +2090,28 @@
             document.getElementById("sizeSlider").addEventListener("input", (e) => {
                 settings.clockSize = parseInt(e.target.value, 10);
                 document.getElementById("sizeVal").textContent = settings.clockSize + "%";
+                invalidateCache();
                 saveSettings();
             });
 
             document.getElementById("thicknessSlider").addEventListener("input", (e) => {
                 settings.handThickness = parseInt(e.target.value, 10);
                 document.getElementById("thicknessVal").textContent = settings.handThickness + "%";
+                invalidateCache();
                 saveSettings();
             });
 
             document.getElementById("shadowSlider").addEventListener("input", (e) => {
                 settings.shadowIntensity = parseInt(e.target.value, 10);
                 document.getElementById("shadowVal").textContent = settings.shadowIntensity + "%";
+                invalidateCache();
                 saveSettings();
             });
 
             document.getElementById("reflectionSlider").addEventListener("input", (e) => {
                 settings.reflectionIntensity = parseInt(e.target.value, 10);
                 document.getElementById("reflectionVal").textContent = settings.reflectionIntensity + "%";
+                invalidateCache();
                 saveSettings();
             });
 
@@ -2353,16 +2119,13 @@
                 settings.soundVolume = parseInt(e.target.value, 10);
                 document.getElementById("volumeVal").textContent = settings.soundVolume + "%";
                 saveSettings();
-                if (settings.soundVolume > 0 && settings.soundEnabled) initAudio();
             });
 
-            // Tickers settings
             tickerScaleSlider.addEventListener("input", (e) => {
                 settings.tickerScale = parseInt(e.target.value, 10);
                 tickerScaleVal.textContent = settings.tickerScale + "%";
                 saveSettings();
                 applyTickerVarsToDOM();
-                // force recompute distances (font-size/height changed)
                 recomputeTickerAnimations();
                 if (settings.marketTickerEnabled) scheduleMarketLoop(true);
                 if (settings.rssTickerEnabled) scheduleRssLoop(true);
@@ -2372,7 +2135,6 @@
                 settings.marketTickerEnabled = !settings.marketTickerEnabled;
                 saveSettings();
                 updateUIStates();
-                // after unhide, recompute animation safely
                 requestAnimationFrame(() => {
                     recomputeTickerAnimations();
                     if (settings.marketTickerEnabled) scheduleMarketLoop(true);
@@ -2475,45 +2237,40 @@
                 if (e.key === "Enter") btnAddRss.click();
             });
 
-            // Keyboard shortcuts
-            document.addEventListener("keydown", (e) => {
+            document.addEventListener("keydown", async (e) => {
                 if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
+
                 const key = e.key.toLowerCase();
-
-                switch (key) {
-                    case "t":
-                        settings.sweepMode = !settings.sweepMode;
-                        lastSecondTick = -1;
-                        lastSweepSubTick = -1;
-                        saveSettings();
-                        updateUIStates();
-                        break;
-                    case "f":
-                        if (!e.ctrlKey && !e.metaKey) toggleFullscreen();
-                        break;
-                    case "m":
-                        settings.soundEnabled = !settings.soundEnabled;
-                        saveSettings();
-                        updateUIStates();
-                        if (settings.soundEnabled) initAudio();
-                        break;
-                    case "escape":
-                        if (settingsOpen) closeSettings();
-                        if (focusMode) toggleFullscreen();
-                        break;
+                if (key === "t") {
+                    settings.sweepMode = !settings.sweepMode;
+                    lastSecondTick = -1;
+                    lastSweepSubTick = -1;
+                    saveSettings();
+                    updateUIStates();
+                } else if (key === "f") {
+                    if (!e.ctrlKey && !e.metaKey) toggleFullscreen();
+                } else if (key === "m") {
+                    settings.soundEnabled = !settings.soundEnabled;
+                    saveSettings();
+                    updateUIStates();
+                    await unlockAudioFromGesture();
+                } else if (key === "escape") {
+                    if (settingsOpen) closeSettings();
+                    if (focusMode) toggleFullscreen();
                 }
+
                 resetInactivityTimer();
+                await unlockAudioFromGesture();
             });
 
-            // Activity tracking
-            ["mousemove", "mousedown", "touchstart", "touchmove", "click"].forEach(evt => {
-                document.addEventListener(evt, () => {
-                    resetInactivityTimer();
-                    if (settings.soundEnabled && isAppVisible && !isFrozen) initAudio();
-                }, { passive: true });
+            ["mousemove", "mousedown", "touchmove"].forEach(evt => {
+                document.addEventListener(evt, () => resetInactivityTimer(), { passive: true });
             });
 
-            // Fullscreen changes
+            ["pointerdown", "touchstart", "click"].forEach(evt => {
+                document.addEventListener(evt, () => unlockAudioFromGesture(), { passive: true });
+            });
+
             const exitFullscreenHandler = () => {
                 if (!document.fullscreenElement && !document.webkitFullscreenElement) {
                     focusMode = false;
@@ -2524,7 +2281,7 @@
             document.addEventListener("fullscreenchange", exitFullscreenHandler);
             document.addEventListener("webkitfullscreenchange", exitFullscreenHandler);
 
-            // Touch scaling (Mobile pinch-to-zoom simulation)
+            // Pinch zoom
             let pinchStartDist = 0;
             let pinchStartScale = 1;
 
@@ -2546,45 +2303,40 @@
                     );
                     const scaleChange = currentDist / pinchStartDist;
                     settings.userScale = Math.max(0.5, Math.min(2.5, pinchStartScale * scaleChange));
+                    invalidateCache();
                     saveSettings();
                 }
             }, { passive: true });
 
             canvasContainer.addEventListener("touchend", () => { pinchStartDist = 0; });
 
-            // Canvas resize observers
+            // Resize observers
             if ("ResizeObserver" in window) {
                 const ro = new ResizeObserver(() => resizeCanvasIfNeeded());
                 ro.observe(canvasContainer);
             }
-
             window.addEventListener("resize", () => {
                 resizeCanvasIfNeeded();
                 recomputeTickerAnimations();
             }, { passive: true });
 
-            // Fonts can change width after load -> recompute ticker distances
             if (document.fonts && typeof document.fonts.ready?.then === "function") {
-                document.fonts.ready.then(() => {
-                    recomputeTickerAnimations();
-                }).catch(() => {});
+                document.fonts.ready.then(() => recomputeTickerAnimations()).catch(() => {});
             }
 
             // ─────────────────────────────────────
-            // Network lifecycle
+            // Lifecycle (battery/network safety)
             // ─────────────────────────────────────
             function startNetworkLoops() {
                 if (!isAppVisible || isFrozen) return;
                 if (settings.marketTickerEnabled) scheduleMarketLoop(true);
                 if (settings.rssTickerEnabled) scheduleRssLoop(true);
             }
-
             function stopNetworkLoops() {
                 stopMarketLoop();
                 stopRssLoop();
             }
 
-            // Visibility / lifecycle API
             function onHidden() {
                 isAppVisible = false;
                 pauseTickers();
@@ -2597,7 +2349,9 @@
                 isAppVisible = true;
                 lastSecondTick = -1;
                 lastSweepSubTick = -1;
-                if (settings.soundEnabled) initAudio();
+                if (audioUnlocked && audioCtx && audioCtx.state === "suspended") {
+                    audioCtx.resume().catch(() => {});
+                }
                 resumeTickersIfAllowed();
                 startRenderLoop();
                 startNetworkLoops();
@@ -2622,16 +2376,13 @@
                 if (!document.hidden) onVisible();
             });
 
-            window.addEventListener("pagehide", () => {
-                onHidden();
-            });
-
+            window.addEventListener("pagehide", () => onHidden());
             window.addEventListener("online", () => {
                 if (!document.hidden && !isFrozen) startNetworkLoops();
             });
 
             // ─────────────────────────────────────
-            // INITIALIZATION
+            // INIT
             // ─────────────────────────────────────
             function init() {
                 applyColorToDOM();
@@ -2641,12 +2392,10 @@
                 resizeCanvasIfNeeded();
                 canvasContainer.classList.add("calibrating");
 
-                // First render & start loop
                 renderClock();
                 startRenderLoop();
                 resetInactivityTimer();
 
-                // Initial placeholders
                 if (settings.marketTickerEnabled) {
                     const html = `<span class="ticker__item"><span class="ticker__sym">MARKET</span><span class="ticker__price">Loading…</span><span class="ticker__chg flat">(—)</span></span>`;
                     setTickerContent(marketTicker, marketTickerTrack, marketTickerA, marketTickerB, html, settings.marketSpeed);
@@ -2658,19 +2407,6 @@
 
                 resumeTickersIfAllowed();
                 startNetworkLoops();
-
-                // Unlock audio context
-                if (settings.soundEnabled) {
-                    const unlockAudio = () => {
-                        initAudio();
-                        document.removeEventListener("click", unlockAudio);
-                        document.removeEventListener("touchstart", unlockAudio);
-                    };
-                    document.addEventListener("click", unlockAudio, { passive: true });
-                    document.addEventListener("touchstart", unlockAudio, { passive: true });
-                }
-
-                console.log("%cLuxury Analog Clock%c · ticker fix: proxy-first on file:// + forced animation restart", "font-size:13px;font-weight:700;color:var(--accent);", "font-size:12px;color:#4a6b75;");
             }
 
             init();
