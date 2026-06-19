@@ -171,6 +171,9 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .ticker__price.up { color: var(--up); }
+        .ticker__price.down { color: var(--down); }
+
         .ticker__chg { font-variant-numeric: tabular-nums; font-weight: 600; }
         .ticker__chg.up { color: var(--up); }
         .ticker__chg.down { color: var(--down); }
@@ -663,6 +666,10 @@
                 <div class="settings-note">
                     Верхняя и нижняя строки синхронны по размеру.
                 </div>
+                <div class="toggle-row">
+                    <span>Force Animation (игнорировать OS reduced-motion)</span>
+                    <div class="toggle-switch" id="toggleForceAnim"></div>
+                </div>
             </div>
 
             <div class="settings-section">
@@ -670,10 +677,15 @@
                     <span>Use CORS Proxy (RSS / Optional markets)</span>
                     <div class="toggle-switch on" id="toggleProxy"></div>
                 </div>
-                <label>CORS Proxy Base URL</label>
-                <input class="control-input" type="text" id="proxyBaseInput" spellcheck="false" placeholder="https://api.allorigins.win/raw?url=" />
+                <label>Proxy List (auto-fallback по порядку)</label>
+                <div class="row">
+                    <input class="control-input" type="text" id="proxyAddInput" spellcheck="false" placeholder="https://api.allorigins.win/raw?url=" />
+                    <button class="btn-sm" id="btnAddProxy" style="flex:0 0 auto;">Add</button>
+                </div>
+                <div class="rss-list" id="proxySourcesList"></div>
+                <button class="btn-sm" id="btnResetProxies">Reset to Defaults</button>
                 <div class="settings-note">
-                    На GitHub Pages почти любой RSS будет блокироваться CORS. Поэтому для RSS используется <b>proxy-first</b> (без попытки direct) — так не будет CORS-ошибок и строка не “умирает”.
+                    На GitHub Pages почти любой RSS/маркет-запрос блокируется CORS. Если один proxy лежит (5xx/timeout) — автоматически пробуем следующий из списка. ✓ — текущий рабочий.
                 </div>
             </div>
 
@@ -686,17 +698,13 @@
                     <div class="toggle-switch on" id="toggleMarketTicker"></div>
                 </div>
 
-                <label>Crypto</label>
-                <select class="control-input" id="cryptoSelect">
-                    <option value="bitcoin">Bitcoin (BTC)</option>
-                    <option value="ethereum">Ethereum (ETH)</option>
-                    <option value="solana">Solana (SOL)</option>
-                    <option value="ripple">XRP (XRP)</option>
-                    <option value="dogecoin">Dogecoin (DOGE)</option>
-                    <option value="toncoin">Toncoin (TON)</option>
-                    <option value="cardano">Cardano (ADA)</option>
-                    <option value="binancecoin">BNB (BNB)</option>
-                </select>
+                <label>Add Crypto (name or ticker)</label>
+                <div class="row">
+                    <input class="control-input" type="text" id="coinAddInput" spellcheck="false" placeholder="bitcoin, eth, ton..." />
+                    <button class="btn-sm" id="btnAddCoin" style="flex:0 0 auto;">Add</button>
+                </div>
+                <div class="settings-note" id="coinSearchStatus">Можно добавить несколько монет — все будут бежать в одной строке.</div>
+                <div class="rss-list" id="coinSourcesList"></div>
 
                 <label>VS Currency</label>
                 <select class="control-input" id="vsCurrencySelect">
@@ -804,7 +812,6 @@
             const marketSpeedVal = document.getElementById("marketSpeedVal");
             const rssSpeedSlider = document.getElementById("rssSpeedSlider");
             const rssSpeedVal = document.getElementById("rssSpeedVal");
-            const cryptoSelect = document.getElementById("cryptoSelect");
             const vsCurrencySelect = document.getElementById("vsCurrencySelect");
             const toggleBonusAssets = document.getElementById("toggleBonusAssets");
             const marketRefreshSlider = document.getElementById("marketRefreshSlider");
@@ -812,7 +819,15 @@
             const rssRefreshSlider = document.getElementById("rssRefreshSlider");
             const rssRefreshVal = document.getElementById("rssRefreshVal");
             const toggleProxy = document.getElementById("toggleProxy");
-            const proxyBaseInput = document.getElementById("proxyBaseInput");
+            const toggleForceAnim = document.getElementById("toggleForceAnim");
+            const proxyAddInput = document.getElementById("proxyAddInput");
+            const btnAddProxy = document.getElementById("btnAddProxy");
+            const btnResetProxies = document.getElementById("btnResetProxies");
+            const proxySourcesList = document.getElementById("proxySourcesList");
+            const coinAddInput = document.getElementById("coinAddInput");
+            const btnAddCoin = document.getElementById("btnAddCoin");
+            const coinSearchStatus = document.getElementById("coinSearchStatus");
+            const coinSourcesList = document.getElementById("coinSourcesList");
             const rssAddInput = document.getElementById("rssAddInput");
             const btnAddRss = document.getElementById("btnAddRss");
             const rssSourcesList = document.getElementById("rssSourcesList");
@@ -841,15 +856,22 @@
                 rssTickerEnabled: true,
                 marketSpeed: 110,
                 rssSpeed: 140,
-                marketCryptoId: "bitcoin",
+                marketCoins: [{ id: "bitcoin", symbol: "BTC", label: "Bitcoin" }],
                 marketVsCurrency: "usd",
                 bonusAssetsEnabled: false,
                 marketRefreshSec: 180,
                 rssRefreshSec: 900,
                 rssSources: ["https://news.ycombinator.com/rss"],
+                forceTickerAnimation: false,
 
                 corsProxyEnabled: true,
-                corsProxyBase: "https://api.allorigins.win/raw?url="
+                corsProxyList: [
+                    "https://api.allorigins.win/raw?url=",
+                    "https://corsproxy.io/?url=",
+                    "https://api.codetabs.com/v1/proxy?quest=",
+                    "https://thingproxy.freeboard.io/fetch/"
+                ],
+                corsProxyIndex: 0
             };
 
             let settings = { ...defaultSettings };
@@ -890,14 +912,35 @@
                 settings.marketRefreshSec = clamp(settings.marketRefreshSec, 60, 900);
                 settings.rssRefreshSec = clamp(settings.rssRefreshSec, 300, 3600);
 
-                settings.marketCryptoId = typeof settings.marketCryptoId === "string" ? settings.marketCryptoId : "bitcoin";
+                if (!Array.isArray(settings.marketCoins) || !settings.marketCoins.length) {
+                    settings.marketCoins = (typeof settings.marketCryptoId === "string" && settings.marketCryptoId)
+                        ? [{ id: settings.marketCryptoId, symbol: settings.marketCryptoId.toUpperCase().slice(0, 8), label: settings.marketCryptoId }]
+                        : [...defaultSettings.marketCoins];
+                }
+                settings.marketCoins = settings.marketCoins
+                    .filter(c => c && typeof c.id === "string" && c.id.trim().length)
+                    .map(c => ({
+                        id: c.id.trim().toLowerCase(),
+                        symbol: (c.symbol || c.id).toString().toUpperCase().slice(0, 10),
+                        label: (c.label || c.id).toString().slice(0, 40)
+                    }))
+                    .slice(0, 10);
+
                 settings.marketVsCurrency = typeof settings.marketVsCurrency === "string" ? settings.marketVsCurrency : "usd";
                 settings.bonusAssetsEnabled = !!settings.bonusAssetsEnabled;
+                settings.forceTickerAnimation = !!settings.forceTickerAnimation;
 
                 settings.corsProxyEnabled = !!settings.corsProxyEnabled;
-                settings.corsProxyBase = typeof settings.corsProxyBase === "string" && settings.corsProxyBase.trim().length >= 8
-                    ? settings.corsProxyBase.trim()
-                    : defaultSettings.corsProxyBase;
+                if (!Array.isArray(settings.corsProxyList) || !settings.corsProxyList.length) {
+                    settings.corsProxyList = [...defaultSettings.corsProxyList];
+                }
+                settings.corsProxyList = settings.corsProxyList
+                    .filter(v => typeof v === "string" && v.trim().length >= 8)
+                    .map(v => v.trim())
+                    .slice(0, 8);
+                settings.corsProxyIndex = Number.isInteger(settings.corsProxyIndex)
+                    ? clamp(settings.corsProxyIndex, 0, Math.max(0, settings.corsProxyList.length - 1))
+                    : 0;
 
                 if (!Array.isArray(settings.rssSources)) settings.rssSources = [...defaultSettings.rssSources];
                 settings.rssSources = settings.rssSources
@@ -1414,22 +1457,45 @@
                 }
             }
 
-            function buildProxyUrl(originalUrl) {
-                const base = (settings.corsProxyBase || "").trim();
+            function buildProxyUrlAt(originalUrl, idx) {
+                const list = settings.corsProxyList || [];
+                const base = (list[idx] || "").trim();
                 if (!base) return "";
                 return base + encodeURIComponent(originalUrl);
+            }
+
+            async function fetchViaProxyRotation(originalUrl, timeoutMs) {
+                const list = settings.corsProxyList || [];
+                if (!list.length) throw new Error("No proxies configured");
+                const startIdx = clamp(settings.corsProxyIndex, 0, list.length - 1);
+                let lastErr = null;
+
+                for (let step = 0; step < list.length; step++) {
+                    const idx = (startIdx + step) % list.length;
+                    const proxyUrl = buildProxyUrlAt(originalUrl, idx);
+                    if (!proxyUrl) continue;
+                    try {
+                        const res = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
+                        if (!res.ok) throw new Error("Proxy HTTP " + res.status);
+                        const text = await res.text();
+                        if (idx !== settings.corsProxyIndex) {
+                            settings.corsProxyIndex = idx;
+                            saveSettings();
+                        }
+                        return text;
+                    } catch (e) {
+                        lastErr = e;
+                    }
+                }
+                throw lastErr || new Error("All proxies failed");
             }
 
             async function fetchTextSmart(url, { timeoutMs = 9000, preferProxy = false } = {}) {
                 if (!isAppVisible || isFrozen) throw new Error("Hidden/Frozen: network disabled");
                 if (!navigator.onLine) throw new Error("Offline");
 
-                const proxyUrl = settings.corsProxyEnabled ? buildProxyUrl(url) : "";
-
-                if (preferProxy && proxyUrl) {
-                    const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
-                    if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
-                    return await resP.text();
+                if (preferProxy && settings.corsProxyEnabled) {
+                    return await fetchViaProxyRotation(url, timeoutMs);
                 }
 
                 try {
@@ -1437,10 +1503,8 @@
                     if (!resD.ok) throw new Error("HTTP " + resD.status);
                     return await resD.text();
                 } catch (e) {
-                    if (!proxyUrl) throw e;
-                    const resP = await fetchWithTimeout(proxyUrl, { timeoutMs: Math.max(12000, timeoutMs) });
-                    if (!resP.ok) throw new Error("Proxy HTTP " + resP.status);
-                    return await resP.text();
+                    if (!settings.corsProxyEnabled) throw e;
+                    return await fetchViaProxyRotation(url, timeoutMs);
                 }
             }
 
@@ -1494,7 +1558,7 @@
                 bEl.innerHTML = safeHtml;
 
                 requestAnimationFrame(() => {
-                    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                    const reduceMotion = !settings.forceTickerAnimation && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
                     if (reduceMotion) {
                         tickerEl.classList.add("paused");
                         trackEl.style.removeProperty("--ticker-distance");
@@ -1535,7 +1599,7 @@
             }
 
             function resumeTickersIfAllowed() {
-                const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                const reduceMotion = !settings.forceTickerAnimation && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
                 if (!isAppVisible || isFrozen || reduceMotion) return;
                 marketTicker.classList.remove("paused");
                 rssTicker.classList.remove("paused");
@@ -1593,7 +1657,7 @@
                         parts.push(
                             `<span class="ticker__item">` +
                                 `<span class="ticker__sym">${sym}</span>` +
-                                `<span class="ticker__price">${price}</span>` +
+                                `<span class="ticker__price ${chgClass}">${price}</span>` +
                                 `<span class="ticker__chg ${chgClass}">(${changeText})</span>` +
                                 meta +
                             `</span>`
@@ -1603,41 +1667,49 @@
                 return parts.join("");
             }
 
-            async function fetchCoinGecko(cryptoId, vsCurrency) {
-                const ids = encodeURIComponent(cryptoId);
+            async function fetchCoinGeckoMulti(coinIds, vsCurrency) {
+                if (!coinIds.length) return [];
+                const ids = encodeURIComponent(coinIds.join(","));
                 const vs = encodeURIComponent(vsCurrency);
                 const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vs}&ids=${ids}&price_change_percentage=24h`;
                 const data = await fetchJsonSmart(url, { timeoutMs: 9000 });
-                if (!Array.isArray(data) || !data[0]) throw new Error("CoinGecko: empty response");
-                const row = data[0];
-                return {
-                    label: row.name || cryptoId,
-                    symbol: row.symbol ? row.symbol.toUpperCase() : cryptoId.toUpperCase(),
+                if (!Array.isArray(data)) throw new Error("CoinGecko: empty response");
+                return data.map(row => ({
+                    id: row.id,
+                    label: row.name || row.id,
+                    symbol: row.symbol ? row.symbol.toUpperCase() : String(row.id).toUpperCase(),
                     price: Number(row.current_price),
                     changePct: Number(row.price_change_percentage_24h),
                     currency: vsCurrency
-                };
+                }));
+            }
+
+            async function searchCoinGecko(query) {
+                const q = encodeURIComponent(query.trim());
+                if (!q) throw new Error("Empty query");
+                const url = `https://api.coingecko.com/api/v3/search?query=${q}`;
+                const data = await fetchJsonSmart(url, { timeoutMs: 9000 });
+                const coins = Array.isArray(data?.coins) ? data.coins : [];
+                if (!coins.length) throw new Error("Coin not found: " + query);
+                return coins[0];
             }
 
             async function fetchYahooDailyChange(symbol) {
                 const s = encodeURIComponent(symbol);
                 const url = `https://query1.finance.yahoo.com/v8/finance/chart/${s}?interval=1d&range=2d`;
-                const proxyUrl = settings.corsProxyEnabled ? buildProxyUrl(url) : url;
-                
-                const res = await fetchWithTimeout(proxyUrl, { timeoutMs: 12000 });
-                const txt = await res.text();
-                
+                const txt = await fetchTextSmart(url, { timeoutMs: 12000, preferProxy: true });
+
                 let dataText = txt;
                 try {
                     const proxyData = JSON.parse(txt);
-                    if (proxyData.contents) dataText = proxyData.contents;
-                } catch(e) {}
-                
+                    if (proxyData && proxyData.contents) dataText = proxyData.contents;
+                } catch (e) {}
+
                 const json = JSON.parse(dataText);
                 const result = json.chart.result[0];
                 const closes = result.indicators.quote[0].close.filter(c => c !== null);
                 if (closes.length < 2) throw new Error("Yahoo: not enough data");
-                
+
                 const lastClose = closes[closes.length - 1];
                 const prevClose = closes[closes.length - 2];
                 const pct = ((lastClose - prevClose) / prevClose) * 100;
@@ -1650,16 +1722,27 @@
 
                 try {
                     const items = [];
+                    const coinIds = (settings.marketCoins || []).map(c => c.id).filter(Boolean);
 
-                    const c = await fetchCoinGecko(settings.marketCryptoId, settings.marketVsCurrency);
-                    const changeClass = Number.isFinite(c.changePct) ? (c.changePct > 0 ? "up" : (c.changePct < 0 ? "down" : "flat")) : "flat";
-                    items.push({
-                        label: c.label,
-                        symbol: c.symbol,
-                        priceText: formatCurrency(c.price, settings.marketVsCurrency),
-                        changeText: formatPct(c.changePct) + " 24h",
-                        changeClass
-                    });
+                    if (coinIds.length) {
+                        const rows = await fetchCoinGeckoMulti(coinIds, settings.marketVsCurrency);
+                        const byId = new Map(rows.map(r => [r.id, r]));
+                        for (const coin of settings.marketCoins) {
+                            const r = byId.get(coin.id);
+                            if (!r) {
+                                items.push({ label: coin.label, symbol: coin.symbol, priceText: "N/A", changeText: "—", changeClass: "flat" });
+                                continue;
+                            }
+                            const changeClass = Number.isFinite(r.changePct) ? (r.changePct > 0 ? "up" : (r.changePct < 0 ? "down" : "flat")) : "flat";
+                            items.push({
+                                label: r.label,
+                                symbol: r.symbol,
+                                priceText: formatCurrency(r.price, settings.marketVsCurrency),
+                                changeText: formatPct(r.changePct) + " 24h",
+                                changeClass
+                            });
+                        }
+                    }
 
                     if (settings.bonusAssetsEnabled) {
                         for (const b of bonusSymbols) {
@@ -1682,6 +1765,8 @@
                             await sleep(150); // Be gentle with proxy
                         }
                     }
+
+                    if (!items.length) throw new Error("No coins configured");
 
                     const baseHtml = buildMarketHTML(items, 1);
                     marketTickerA.innerHTML = baseHtml;
@@ -1937,6 +2022,78 @@
                 }
             }
 
+            function renderCoinSourcesList() {
+                coinSourcesList.innerHTML = "";
+                const list = settings.marketCoins || [];
+
+                if (!list.length) {
+                    const div = document.createElement("div");
+                    div.className = "settings-note";
+                    div.textContent = "Нет добавленных монет. Введите имя выше.";
+                    coinSourcesList.appendChild(div);
+                    return;
+                }
+
+                for (const coin of list) {
+                    const row = document.createElement("div");
+                    row.className = "rss-item";
+
+                    const code = document.createElement("code");
+                    code.title = coin.id;
+                    code.textContent = `${coin.label} (${coin.symbol})`;
+
+                    const btn = document.createElement("button");
+                    btn.className = "btn-sm btn-danger";
+                    btn.textContent = "Remove";
+                    btn.addEventListener("click", () => {
+                        settings.marketCoins = (settings.marketCoins || []).filter(c => c.id !== coin.id);
+                        saveSettings();
+                        renderCoinSourcesList();
+                        scheduleMarketLoop(true);
+                    });
+
+                    row.appendChild(code);
+                    row.appendChild(btn);
+                    coinSourcesList.appendChild(row);
+                }
+            }
+
+            function renderProxySourcesList() {
+                proxySourcesList.innerHTML = "";
+                const list = settings.corsProxyList || [];
+
+                if (!list.length) {
+                    const div = document.createElement("div");
+                    div.className = "settings-note";
+                    div.textContent = "Список proxy пуст.";
+                    proxySourcesList.appendChild(div);
+                    return;
+                }
+
+                list.forEach((proxy, idx) => {
+                    const row = document.createElement("div");
+                    row.className = "rss-item";
+
+                    const code = document.createElement("code");
+                    code.title = proxy;
+                    code.textContent = (idx === settings.corsProxyIndex ? "✓ " : "") + proxy;
+
+                    const btn = document.createElement("button");
+                    btn.className = "btn-sm btn-danger";
+                    btn.textContent = "Remove";
+                    btn.addEventListener("click", () => {
+                        settings.corsProxyList = (settings.corsProxyList || []).filter(p => p !== proxy);
+                        if (settings.corsProxyIndex >= settings.corsProxyList.length) settings.corsProxyIndex = 0;
+                        saveSettings();
+                        renderProxySourcesList();
+                    });
+
+                    row.appendChild(code);
+                    row.appendChild(btn);
+                    proxySourcesList.appendChild(row);
+                });
+            }
+
             function renderRssSourcesList() {
                 rssSourcesList.innerHTML = "";
                 const list = (settings.rssSources || []).slice(0, 12);
@@ -2001,7 +2158,7 @@
                 toggleBonusAssets.classList.toggle("on", !!settings.bonusAssetsEnabled);
 
                 toggleProxy.classList.toggle("on", !!settings.corsProxyEnabled);
-                proxyBaseInput.value = settings.corsProxyBase || "";
+                toggleForceAnim.classList.toggle("on", !!settings.forceTickerAnimation);
 
                 tickerScaleSlider.value = settings.tickerScale;
                 tickerScaleVal.textContent = settings.tickerScale + "%";
@@ -2010,7 +2167,6 @@
                 rssSpeedSlider.value = settings.rssSpeed;
                 rssSpeedVal.textContent = String(settings.rssSpeed);
 
-                cryptoSelect.value = settings.marketCryptoId;
                 vsCurrencySelect.value = settings.marketVsCurrency;
 
                 marketRefreshSlider.value = settings.marketRefreshSec;
@@ -2019,6 +2175,8 @@
                 rssRefreshVal.textContent = settings.rssRefreshSec + "s";
 
                 renderRssSourcesList();
+                renderCoinSourcesList();
+                renderProxySourcesList();
                 applyTickerVarsToDOM();
             }
 
@@ -2160,10 +2318,37 @@
                 scheduleMarketLoop(true);
             });
 
-            cryptoSelect.addEventListener("change", () => {
-                settings.marketCryptoId = cryptoSelect.value;
-                saveSettings();
-                scheduleMarketLoop(true);
+            btnAddCoin.addEventListener("click", async () => {
+                const q = (coinAddInput.value || "").trim();
+                if (!q) return;
+                coinSearchStatus.textContent = "Поиск…";
+                btnAddCoin.disabled = true;
+                try {
+                    const found = await searchCoinGecko(q);
+                    const exists = (settings.marketCoins || []).some(c => c.id === found.id);
+                    if (!exists) {
+                        settings.marketCoins = [...(settings.marketCoins || []), {
+                            id: found.id,
+                            symbol: (found.symbol || found.id).toUpperCase(),
+                            label: found.name || found.id
+                        }].slice(0, 10);
+                        saveSettings();
+                        renderCoinSourcesList();
+                        scheduleMarketLoop(true);
+                        coinSearchStatus.textContent = "Добавлено: " + (found.name || found.id);
+                    } else {
+                        coinSearchStatus.textContent = "Уже добавлено: " + (found.name || found.id);
+                    }
+                    coinAddInput.value = "";
+                } catch (e) {
+                    coinSearchStatus.textContent = "Не найдено: " + q + " (проверь название/тикер)";
+                } finally {
+                    btnAddCoin.disabled = false;
+                }
+            });
+
+            coinAddInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") btnAddCoin.click();
             });
 
             vsCurrencySelect.addEventListener("change", () => {
@@ -2208,10 +2393,37 @@
                 scheduleRssLoop(true);
             });
 
-            proxyBaseInput.addEventListener("change", () => {
-                settings.corsProxyBase = proxyBaseInput.value.trim() || defaultSettings.corsProxyBase;
+            toggleForceAnim.addEventListener("click", () => {
+                settings.forceTickerAnimation = !settings.forceTickerAnimation;
                 saveSettings();
                 updateUIStates();
+                recomputeTickerAnimations();
+                resumeTickersIfAllowed();
+            });
+
+            btnAddProxy.addEventListener("click", () => {
+                const val = (proxyAddInput.value || "").trim();
+                if (!val || val.length < 8) return;
+                const set = new Set(settings.corsProxyList || []);
+                set.add(val);
+                settings.corsProxyList = Array.from(set).slice(0, 8);
+                proxyAddInput.value = "";
+                saveSettings();
+                renderProxySourcesList();
+                scheduleMarketLoop(true);
+                scheduleRssLoop(true);
+            });
+
+            proxyAddInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") btnAddProxy.click();
+            });
+
+            btnResetProxies.addEventListener("click", () => {
+                settings.corsProxyList = [...defaultSettings.corsProxyList];
+                settings.corsProxyIndex = 0;
+                saveSettings();
+                renderProxySourcesList();
+                scheduleMarketLoop(true);
                 scheduleRssLoop(true);
             });
 
