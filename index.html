@@ -526,8 +526,8 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .ticker__track { animation: none !important; transform: none !important; }
-        }
+			:root:not(.force-anim) .ticker__track { animation: none !important; transform: none !important; }
+		}
     </style>
 </head>
 
@@ -862,7 +862,7 @@
                 marketRefreshSec: 180,
                 rssRefreshSec: 900,
                 rssSources: ["https://news.ycombinator.com/rss"],
-                forceTickerAnimation: false,
+                forceTickerAnimation: true,
 
                 corsProxyEnabled: true,
                 corsProxyList: [
@@ -1008,6 +1008,9 @@
                 const bottomH = settings.rssTickerEnabled ? height : 0;
                 document.documentElement.style.setProperty("--top-ticker-height", `${topH}px`);
                 document.documentElement.style.setProperty("--bottom-ticker-height", `${bottomH}px`);
+
+                document.documentElement.classList.toggle("force-anim", 
+				!!settings.forceTickerAnimation);
 
                 marketTicker.hidden = !settings.marketTickerEnabled;
                 rssTicker.hidden = !settings.rssTickerEnabled;
