@@ -199,11 +199,18 @@
         .ticker a:hover { color: rgba(var(--accent-rgb), 0.95); }
 		
 		#rssTicker .ticker__price {
-			font-size: calc(var(--ticker-font-size) * 1.25);
+			font-size: calc(var(--ticker-font-size) * 1.15);
 		}
 		
 		#rssTicker {
-			--ticker-height: calc(var(--ticker-height) * 1.25);
+			--ticker-height: calc(var(--ticker-height) * 1.15);
+		}
+
+		/* RSS: курсив для текста уведомлений (заголовков/ссылок) */
+		#rssTicker .ticker__price,
+		#rssTicker .ticker__price a,
+		#rssTicker .ticker__price span {
+			font-style: italic;
 		}
 
         /* ─────────────────────────────────────
