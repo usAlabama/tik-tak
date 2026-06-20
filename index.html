@@ -111,7 +111,7 @@
             text-rendering: geometricPrecision;
         }
         .ticker--top { top: 0; }
-        .ticker--bottom { bottom: 0; }
+        .ticker--bottom { bottom: 10px; }
 
         .ticker__viewport {
             height: 100%;
@@ -181,6 +181,15 @@
 
         .ticker__meta { color: rgba(209, 228, 232, 0.58); font-weight: 500; }
 
+		.ticker__sep {
+			font-weight: 700;
+			letter-spacing: 0;
+			opacity: 0.95;
+		}
+		.ticker__sep.up { color: var(--up); }
+		.ticker__sep.down { color: var(--down); }
+		.ticker__sep.flat { color: rgba(209, 228, 232, 0.45); }
+
         .ticker a {
             color: rgba(209, 228, 232, 0.88);
             text-decoration: none;
@@ -188,6 +197,14 @@
             -webkit-user-select: text;
         }
         .ticker a:hover { color: rgba(var(--accent-rgb), 0.95); }
+		
+		#rssTicker .ticker__price {
+			font-size: calc(var(--ticker-font-size) * 1.25);
+		}
+		
+		#rssTicker {
+			--ticker-height: calc(var(--ticker-height) * 1.25);
+		}
 
         /* ─────────────────────────────────────
            CLOCK CANVAS
@@ -752,7 +769,7 @@
 
                 <label>Speed (px/s)</label>
                 <div class="slider-group">
-                    <input type="range" id="rssSpeedSlider" min="30" max="320" value="140" step="1" />
+                    <input type="range" id="rssSpeedSlider" min="5" max="320" value="140" step="1" />
                     <span class="slider-val" id="rssSpeedVal">140</span>
                 </div>
 
@@ -908,7 +925,7 @@
                 settings.marketTickerEnabled = !!settings.marketTickerEnabled;
                 settings.rssTickerEnabled = !!settings.rssTickerEnabled;
                 settings.marketSpeed = clamp(settings.marketSpeed, 30, 260);
-                settings.rssSpeed = clamp(settings.rssSpeed, 30, 320);
+                settings.rssSpeed = clamp(settings.rssSpeed, 5, 320);
                 settings.marketRefreshSec = clamp(settings.marketRefreshSec, 60, 900);
                 settings.rssRefreshSec = clamp(settings.rssRefreshSec, 300, 3600);
 
@@ -1571,13 +1588,13 @@
                     if (tickerEl.hidden) return;
 
                     // FIX DOM EXPLOSION: Ensure baseWidth is never too small when hidden
-                    const baseWidthRaw = aEl.scrollWidth;
+                    const baseWidthRaw = aEl.getBoundingClientRect().width;
                     const baseWidth = Number.isFinite(baseWidthRaw) && baseWidthRaw > 20 ? baseWidthRaw : 600;
                     const viewportWidth = tickerEl.clientWidth || window.innerWidth || 1200;
                     
                     const distance = baseWidth;
-                    const speed = clamp(speedPxPerSec, 20, 600);
-                    const durationSec = clamp(distance / speed, 8, 240);
+                    const speed = clamp(speedPxPerSec, 5, 600);
+                    const durationSec = clamp(distance / speed, 8, 1200);
 
                     trackEl.style.setProperty("--ticker-distance", distance + "px");
                     trackEl.style.setProperty("--ticker-duration", durationSec.toFixed(2) + "s");
@@ -1622,7 +1639,7 @@
             const marketState = { timer: 0, backoffMs: 0, lastItems: [], inFlight: false };
 
             const bonusSymbols = [
-                { symbol: "CL=F", label: "WTI Crude" },
+                { symbol: "CL=F", label: "Brent Crude" },
                 { symbol: "GC=F", label: "Gold" },
                 { symbol: "SI=F", label: "Silver" },
                 { symbol: "^GSPC", label: "S&P 500" }
@@ -1657,14 +1674,16 @@
                         const changeText = escapeHTML(it.changeText || "—");
                         const meta = it.meta ? ` <span class="ticker__meta">${escapeHTML(it.meta)}</span>` : "";
                         const chgClass = it.changeClass || "flat";
-                        parts.push(
-                            `<span class="ticker__item">` +
-                                `<span class="ticker__sym">${sym}</span>` +
-                                `<span class="ticker__price ${chgClass}">${price}</span>` +
-                                `<span class="ticker__chg ${chgClass}">(${changeText})</span>` +
-                                meta +
-                            `</span>`
-                        );
+						const sep = chgClass === "up" ? "▲" : (chgClass === "down" ? "▼" : "•");
+						parts.push(
+							`<span class="ticker__item">` +
+								`<span class="ticker__sym">${sym}</span>` +
+								`<span class="ticker__price ${chgClass}">${price}</span>` +
+								`<span class="ticker__chg ${chgClass}">(${changeText})</span>` +
+								meta +
+								`<span class="ticker__sep ${chgClass}">${sep}</span>` +
+							`</span>`
+						);
                     }
                 }
                 return parts.join("");
@@ -1741,7 +1760,7 @@
                                 label: r.label,
                                 symbol: r.symbol,
                                 priceText: formatCurrency(r.price, settings.marketVsCurrency),
-                                changeText: formatPct(r.changePct) + " 24h",
+                                changeText: formatPct(r.changePct),
                                 changeClass
                             });
                         }
@@ -1758,12 +1777,11 @@
                                     priceText: Number.isFinite(v.price)
                                         ? new Intl.NumberFormat(undefined, { maximumFractionDigits: v.price >= 1000 ? 0 : 2 }).format(v.price)
                                         : "N/A",
-                                    changeText: formatPct(v.changePct) + " 1D",
-                                    changeClass: cls,
-                                    meta: "YF"
+                                    changeText: formatPct(v.changePct),
+                                    changeClass: cls
                                 });
                             } catch {
-                                items.push({ label: b.label, symbol: b.label, priceText: "N/A", changeText: "—", changeClass: "flat", meta: "YF" });
+                                items.push({ label: b.label, symbol: b.label, priceText: "N/A", changeText: "—", changeClass: "flat" });
                             }
                             await sleep(150); // Be gentle with proxy
                         }
@@ -1869,7 +1887,7 @@
                         const content = link
                             ? `<a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">${title}</a>`
                             : `<span>${title}</span>`;
-                        parts.push(`<span class="ticker__item"><span class="ticker__sym">RSS</span><span class="ticker__price">${content}</span></span>`);
+                        parts.push(`<span class="ticker__item"><span class="ticker__sym">★</span><span class="ticker__price">${content}</span></span>`);
                     }
                 }
                 return parts.join("");
