@@ -1646,11 +1646,22 @@
             const marketState = { timer: 0, backoffMs: 0, lastItems: [], inFlight: false };
 
             const bonusSymbols = [
-                { symbol: "CL=F", label: "Brent Crude" },
-                { symbol: "GC=F", label: "Gold" },
-                { symbol: "SI=F", label: "Silver" },
-                { symbol: "^GSPC", label: "S&P 500" }
-            ];
+				// Энергоносители
+				{ symbol: "BZ=F", label: "Brent Crude" },
+				{ symbol: "CL=F", label: "WTI Crude" },
+
+				// Драгоценные и промышленные металлы
+				{ symbol: "GC=F", label: "Gold" },
+				{ symbol: "SI=F", label: "Silver" },
+				{ symbol: "PL=F", label: "Platinum" },
+				{ symbol: "PA=F", label: "Palladium" },
+				{ symbol: "HG=F", label: "Copper" },
+
+				// Главные фондовые индексы (Спот / Текущие значения)
+				{ symbol: "^GSPC", label: "S&P 500" },
+				{ symbol: "^DJI", label: "Dow Jones" },
+				{ symbol: "^RUT", label: "Russell 2000 (Small Cap)" }
+			];
 
             function formatCurrency(value, currency) {
                 if (!Number.isFinite(value)) return "N/A";
